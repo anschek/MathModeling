@@ -1,92 +1,126 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Program;
+using System.Collections;
+using System.Collections;
 
 namespace MathMod
 {
     internal class TransportProblem
     {
-        int[] a_;
-        int[] b_;
-        int[,] rates_;
-        int[,] fun_;
+        List<int> a_;
+        List<int> b_;
+        //тарифы и целевая функция
+        List<List<int>> rates_;
+        List<List<int>> objective_func_;
 
-        public TransportProblem(int[]a, int[]b, int[,] rates)
+        public TransportProblem(List<int> a, List<int> b, List<List<int>> c)
         {
-            a_=a; b_=b; rates_=rates;   
+            a_ = a; b_ = b; rates_ = c;
         }
 
-        static int GetIndexesOfMinElemets(int[,] cur_rates)
+        public static void PrintMatrix(List<List<int>> matrix)
         {
-            int min_element = cur_rates[0, 0];
-            for(int i=0; i < cur_rates.GetLength(0); ++i)
+            for (int i = 0; i < matrix.Count; ++i)
             {
-                for(int j=0; j < cur_rates.GetLength(1); ++j)
+                for (int j = 0; j < matrix[0].Count; ++j)
                 {
-                    if(cur_rates[i, j] < min_element)
+                    Console.Write(matrix[i][j]);
+                    Console.Write("  ");
+                }
+                Console.WriteLine();
+            }
+        }
+        static int GetMaxElement(List<List<int>> cur_rates)
+        {
+            int max_element = cur_rates[0][0];
+            for (int i = 0; i < cur_rates.Count; ++i)
+            {
+                for (int j = 0; j < cur_rates[0].Count; ++j)
+                {
+                    int cur_max = cur_rates[i][j];
+                    if (cur_max > max_element)
                     {
-                        min_element = cur_rates[i, j];
+                        max_element = cur_max;
+                    }
+                }
+            }
+            return max_element;
+        }
+
+        static int GetMinElement(List<List<int>> cur_rates)
+        {
+            int min_element = cur_rates[0][0];
+            for (int i = 0; i < cur_rates.Count; ++i)
+            {
+                for (int j = 0; j < cur_rates[0].Count; ++j)
+                {
+                    int cur_min = cur_rates[i][j];
+                    if (cur_min < min_element)
+                    {
+                        min_element = cur_min;
                     }
                 }
             }
             return min_element;
         }
 
-        public void MethodOfMinElement()
+        static (int, int) GetMinIndex(List<List<int>> cur_rates)
         {
-            int[,] cur_rates = (int[,])rates_.Clone();
-            int[] cur_a = a_;
-            int[] cur_b = b_;
-
-            int[,] cur_func = new int[a_.GetLength(0), b_.GetLength(0)];
-
-            while (cur_a.Sum() > 0 || cur_b.Sum() > 0)
+            int min_element = GetMinElement(cur_rates);
+            for (int i = 0; i < cur_rates.Count; ++i)
             {
-                int min_element = GetIndexesOfMinElemets(cur_rates);
-
-                for (int i = 0; i < cur_rates.GetLength(0); ++i)
+                for (int j = 0; j < cur_rates[0].Count; ++j)
                 {
-                    for (int j = 0; j < cur_rates.GetLength(1); ++j)
+                    if (cur_rates[i][j] == min_element)
                     {
-                        if (cur_rates[i, j] == min_element)
-                        {
-                            int supply = Math.Min(cur_a[i], cur_b[j]);
-                            
-                            cur_rates[i, j] = 500;
-
-                            cur_func[i, j] = supply;
-                            cur_a[i] -= supply;
-                            cur_b[j] -= supply;
-                        }
+                        return (i, j);
                     }
                 }
-
             }
-            fun_ = cur_func;
+            return (-1, -1);//в случае ошибки
         }
 
-        public int[,] GetFunc()
+        public void MethodOfMinElement()
         {
-            return fun_;
-        }
-
-        public int CalculateObjectiveFunction()
-        {
-            int result = 0;
-
-            for (int i = 0; i < rates_.GetLength(0); ++i)
+            List<List<int>> cur_rates = rates_;
+            //init
+            List<List<int>> cur_func = new List<List<int>> { };
+            for (int i = 0; i < rates_.Count; ++i)
             {
-                for (int j = 0; j < rates_.GetLength(1); ++j)
+                cur_func.Add(new List<int> { });
+                for (int j = 0; j < rates_[0].Count; ++j)
                 {
-                    result+= rates_[i, j]*fun_[i,j];
+                    cur_func[i].Add(0);
                 }
             }
-            return result;
+
+            List<int> cur_a = a_;
+            List<int> cur_b = b_;
+
+            while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
+            {
+                (int, int) min_indexes = GetMinIndex(cur_rates);
+
+                int i = min_indexes.Item1; int j = min_indexes.Item2;
+
+                int supply = Math.Min(cur_a[i], cur_b[j]);
+                cur_rates[i][j] = GetMaxElement(cur_rates) + 1;
+                cur_func[i][j] = supply;
+                cur_a[i] -= supply;
+                cur_b[j] -= supply;
+
+            }
+            objective_func_ = cur_func;
         }
+
+        public List<List<int>> GetObjectiveFunction()
+        {
+            return objective_func_;
+        }
+
 
     }
 }
