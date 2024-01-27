@@ -33,3 +33,4 @@ transport_problem1.MethodOfMinElement();
 
 Console.WriteLine();
 PrintMatrix(transport_problem1.GetFunc());
+Console.WriteLine(transport_problem1.CalculateObjectiveFunction());

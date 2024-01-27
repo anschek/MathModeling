@@ -38,7 +38,7 @@ namespace MathMod
 
         public void MethodOfMinElement()
         {
-            int[,] cur_rates = rates_;
+            int[,] cur_rates = (int[,])rates_.Clone();
             int[] cur_a = a_;
             int[] cur_b = b_;
 
@@ -72,6 +72,20 @@ namespace MathMod
         public int[,] GetFunc()
         {
             return fun_;
+        }
+
+        public int CalculateObjectiveFunction()
+        {
+            int result = 0;
+
+            for (int i = 0; i < rates_.GetLength(0); ++i)
+            {
+                for (int j = 0; j < rates_.GetLength(1); ++j)
+                {
+                    result+= rates_[i, j]*fun_[i,j];
+                }
+            }
+            return result;
         }
 
     }
