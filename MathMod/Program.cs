@@ -26,6 +26,22 @@ transport_problem1.MethodOfMinElement();
 TransportProblem.PrintMatrix(transport_problem1.GetObjectiveFunction());
 
 Console.WriteLine(transport_problem1.GetResult());
+Console.WriteLine();
 
 //TransportProblem transportProblem = new TransportProblem(a1, b1, c1);
 //TransportProblem.PrintMatrix(c1);
+
+
+List<int> a2 = new List<int> { 240,40,110 };
+List<int> b2 = new List<int> { 90,190,40,130 };
+List<List<int>> c2 = new List<List<int>> { };
+c2.Add(new List<int> { 7,13,9,8 });
+c2.Add(new List<int> { 14,8,7,10 });
+c2.Add(new List<int> { 3,15,20,6 });
+
+TransportProblem transport_problem2 = new TransportProblem(a2, b2, c2);
+transport_problem2.MethodOfMinElement();
+TransportProblem.PrintMatrix(transport_problem2.GetObjectiveFunction());
+
+Console.WriteLine(transport_problem2.GetResult());
+Console.WriteLine();

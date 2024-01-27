@@ -17,8 +17,8 @@ namespace MathMod
         List<List<int>> objective_func_;
 
         ClosednessType type_;
-        List<List<int>> rates_open_;
-        List<List<int>> func_open_;
+        //!!вычислении функции по коду определять, 
+        //какой ст/стр не считать
         
 
         enum ClosednessType
@@ -32,12 +32,44 @@ namespace MathMod
         {
             a_ = a; b_ = b; rates_ = c;
 
-            int SumA=a.Select(x => x).Sum();
-            int SumB=b.Select(x => x).Sum();
-            if (SumA == SumB) type_ = ClosednessType.Close;
-            else if (SumA < SumB) type_ = ClosednessType.ShortageOfSupply;
-            else type_ = ClosednessType.SurplusOfSupply;
+            if (ListSum(a_) == ListSum(b_)) type_ = ClosednessType.Close;
+            else ReduceProblemToClosed();
+        }
 
+        static int ListSum(List<int> list)
+        {
+            return list.Select(x => x).Sum(); ;
+        }
+        
+        void ReduceProblemToClosed()
+        {
+            int SumA = ListSum(a_);
+            int SumB = ListSum(b_);
+            int diff = Math.Abs(SumA - SumB);
+            int max_elem_to_add = GetMaxElement(rates_) + 1;
+            //не хватает груза
+            if (SumA < SumB)
+            {
+                a_.Add(diff);
+                //добавляем фиктивного поставщика - строку
+                rates_.Add(new List<int> { });
+                for (int j = 0; j < rates_[0].Count(); ++j)
+                {
+                    rates_[rates_.Count - 1].Add(max_elem_to_add);
+                    //rates_[rates_.Count - 1][j] = max_elem_to_add;
+                }
+            }
+            else
+            {
+                b_.Add(diff);
+                //добавляем фиктивного потребителя - столбец
+                type_ = ClosednessType.SurplusOfSupply;
+                for (int i = 0; i < rates_.Count(); ++i)
+                {
+                    rates_[i].Add(max_elem_to_add);
+                    //rates_[rates_[0].Count - 1] = max_elem_to_add;
+                }
+            }
         }
 
         public static void PrintMatrix(List<List<int>> matrix)
@@ -123,11 +155,15 @@ namespace MathMod
         public int GetResult()
         {
             int result = 0;
-            for (int i = 0; i < rates_.Count; ++i)
+            int rows = rates_.Count;
+            int columns = rates_[0].Count;
+            if (type_ == ClosednessType.ShortageOfSupply) --rows;
+            if (type_ == ClosednessType.SurplusOfSupply) --columns;
+            for (int i = 0;i <rows;  ++i)
             {
-                for (int j = 0; j < rates_[0].Count; ++j)
+                for (int j = 0; j < columns; ++j)
                 {
-                    result += rates_[i][j] * objective_func_[i][j];
+                   result += rates_[i][j] * objective_func_[i][j];
                 }
             }
             return result;
