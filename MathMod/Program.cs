@@ -25,5 +25,7 @@ TransportProblem transport_problem1 = new TransportProblem(a1, b1, c1);
 transport_problem1.MethodOfMinElement();
 TransportProblem.PrintMatrix(transport_problem1.GetObjectiveFunction());
 
+Console.WriteLine(transport_problem1.GetResult());
+
 //TransportProblem transportProblem = new TransportProblem(a1, b1, c1);
 //TransportProblem.PrintMatrix(c1);

@@ -85,15 +85,16 @@ namespace MathMod
 
         public void MethodOfMinElement()
         {
-            List<List<int>> cur_rates = rates_;
-            //init
+            List<List<int>> cur_rates = new List<List<int>> { };
             List<List<int>> cur_func = new List<List<int>> { };
             for (int i = 0; i < rates_.Count; ++i)
             {
+                cur_rates.Add(new List<int> { });
                 cur_func.Add(new List<int> { });
                 for (int j = 0; j < rates_[0].Count; ++j)
                 {
                     cur_func[i].Add(0);
+                    cur_rates[i].Add(rates_[i][j]);
                 }
             }
 
@@ -119,6 +120,20 @@ namespace MathMod
         public List<List<int>> GetObjectiveFunction()
         {
             return objective_func_;
+        }
+
+        public int GetResult()
+        {
+            int result = 0;
+            for (int i = 0; i < rates_.Count; ++i)
+            {
+                for (int j = 0; j < rates_[0].Count; ++j)
+                {
+                    result += rates_[i][j] * objective_func_[i][j];
+                }
+            }
+            return result;
+
         }
 
 
