@@ -16,9 +16,28 @@ namespace MathMod
         List<List<int>> rates_;
         List<List<int>> objective_func_;
 
+        ClosednessType type_;
+        List<List<int>> rates_open_;
+        List<List<int>> func_open_;
+        
+
+        enum ClosednessType
+        {
+            Close,
+            ShortageOfSupply,
+            SurplusOfSupply
+        }
+
         public TransportProblem(List<int> a, List<int> b, List<List<int>> c)
         {
             a_ = a; b_ = b; rates_ = c;
+
+            int SumA=a.Select(x => x).Sum();
+            int SumB=b.Select(x => x).Sum();
+            if (SumA == SumB) type_ = ClosednessType.Close;
+            else if (SumA < SumB) type_ = ClosednessType.ShortageOfSupply;
+            else type_ = ClosednessType.SurplusOfSupply;
+
         }
 
         public static void PrintMatrix(List<List<int>> matrix)
@@ -35,36 +54,12 @@ namespace MathMod
         }
         static int GetMaxElement(List<List<int>> cur_rates)
         {
-            int max_element = cur_rates[0][0];
-            for (int i = 0; i < cur_rates.Count; ++i)
-            {
-                for (int j = 0; j < cur_rates[0].Count; ++j)
-                {
-                    int cur_max = cur_rates[i][j];
-                    if (cur_max > max_element)
-                    {
-                        max_element = cur_max;
-                    }
-                }
-            }
-            return max_element;
+            return cur_rates.Select(x => x.Max()).Max();
         }
 
         static int GetMinElement(List<List<int>> cur_rates)
         {
-            int min_element = cur_rates[0][0];
-            for (int i = 0; i < cur_rates.Count; ++i)
-            {
-                for (int j = 0; j < cur_rates[0].Count; ++j)
-                {
-                    int cur_min = cur_rates[i][j];
-                    if (cur_min < min_element)
-                    {
-                        min_element = cur_min;
-                    }
-                }
-            }
-            return min_element;
+            return cur_rates.Select(x => x.Min()).Min();
         }
 
         static (int, int) GetMinIndex(List<List<int>> cur_rates)
@@ -85,21 +80,24 @@ namespace MathMod
 
         public void MethodOfMinElement()
         {
+            //init lists
             List<List<int>> cur_rates = new List<List<int>> { };
             List<List<int>> cur_func = new List<List<int>> { };
+            List<int> cur_a = new List<int> { };
+            List<int> cur_b = new List<int> { };
             for (int i = 0; i < rates_.Count; ++i)
             {
                 cur_rates.Add(new List<int> { });
                 cur_func.Add(new List<int> { });
+                cur_a.Add(a_[i]);
                 for (int j = 0; j < rates_[0].Count; ++j)
                 {
                     cur_func[i].Add(0);
                     cur_rates[i].Add(rates_[i][j]);
+                    cur_b.Add(b_[j]);
                 }
             }
 
-            List<int> cur_a = a_;
-            List<int> cur_b = b_;
 
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
