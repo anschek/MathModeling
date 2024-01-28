@@ -39,9 +39,15 @@ c2.Add(new List<int> { 7,13,9,8 });
 c2.Add(new List<int> { 14,8,7,10 });
 c2.Add(new List<int> { 3,15,20,6 });
 
-TransportProblem transport_problem2 = new TransportProblem(a2, b2, c2);
-transport_problem2.MethodOfMinElement();
-TransportProblem.PrintMatrix(transport_problem2.GetObjectiveFunction());
+//TransportProblem transport_problem2 = new TransportProblem(a2, b2, c2);
+//transport_problem2.MethodOfMinElement();
+//TransportProblem.PrintMatrix(transport_problem2.GetObjectiveFunction());
 
-Console.WriteLine(transport_problem2.GetResult());
-Console.WriteLine();
+//Console.WriteLine(transport_problem2.GetResult());
+//Console.WriteLine();
+
+transport_problem1.NewTransportProblem(a2, b2, c2);
+transport_problem1.MethodOfMinElement();
+TransportProblem.PrintMatrix(transport_problem1.GetObjectiveFunction());
+
+Console.WriteLine(transport_problem1.GetResult());

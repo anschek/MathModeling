@@ -17,9 +17,6 @@ namespace MathMod
         List<List<int>> objective_func_;
 
         ClosednessType type_;
-        //!!вычислении функции по коду определять, 
-        //какой ст/стр не считать
-        
 
         enum ClosednessType
         {
@@ -30,6 +27,12 @@ namespace MathMod
 
         public TransportProblem(List<int> a, List<int> b, List<List<int>> c)
         {
+            NewTransportProblem(a, b, c);
+        }
+
+        public void NewTransportProblem(List<int> a, List<int> b, List<List<int>> c)
+        {
+            //a_.Clear(); b_.Clear(); rates_.Clear();
             a_ = a; b_ = b; rates_ = c;
 
             if (ListSum(a_) == ListSum(b_)) type_ = ClosednessType.Close;
