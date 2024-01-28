@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
-using System.Collections;
 
 namespace MathMod
 {
@@ -14,7 +13,7 @@ namespace MathMod
         List<int> b_;
         //тарифы и целевая функция
         List<List<int>> rates_;
-        List<List<int>> objective_func_;
+        List<List<int>> optimal_;
 
         ClosednessType type_;
 
@@ -32,7 +31,6 @@ namespace MathMod
 
         public void NewTransportProblem(List<int> a, List<int> b, List<List<int>> c)
         {
-            //a_.Clear(); b_.Clear(); rates_.Clear();
             a_ = a; b_ = b; rates_ = c;
 
             if (ListSum(a_) == ListSum(b_)) type_ = ClosednessType.Close;
@@ -147,17 +145,23 @@ namespace MathMod
                 cur_b[j] -= supply;
 
             }
-            objective_func_ = cur_func;
+            optimal_ = cur_func;
         }
 
-        public List<List<int>> GetObjectiveFunction()
+        public List<List<int>> GetOptimalDistribution()
         {
-            return objective_func_;
+            return optimal_;
+        }
+        //этот план невырожденный
+        public bool IsNonDegenerate()
+        {
+            return (a_.Count + b_.Count - 1
+                == optimal_.SelectMany(x => x).Count(x => x!=0));
         }
 
-        public int GetResult()
+        public int GetObjectiveFunction()
         {
-            int result = 0;
+            int objective_func = 0;
             int rows = rates_.Count;
             int columns = rates_[0].Count;
             if (type_ == ClosednessType.ShortageOfSupply) --rows;
@@ -166,10 +170,10 @@ namespace MathMod
             {
                 for (int j = 0; j < columns; ++j)
                 {
-                   result += rates_[i][j] * objective_func_[i][j];
+                   objective_func += rates_[i][j] * optimal_[i][j];
                 }
             }
-            return result;
+            return objective_func;
 
         }
 
