@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
+using System.Runtime;
 
 namespace MathMod
 {
@@ -47,7 +48,7 @@ namespace MathMod
             int SumA = ListSum(a_);
             int SumB = ListSum(b_);
             int diff = Math.Abs(SumA - SumB);
-            int max_elem_to_add = GetMaxElement(rates_) + 1;
+            int max_elem_to_add = GetMaxElement(rates_);
             //не хватает груза
             if (SumA < SumB)
             {
@@ -166,7 +167,7 @@ namespace MathMod
                 int i = min_indexes.Item1; int j = min_indexes.Item2;
 
                 int supply = Math.Min(cur_a[i], cur_b[j]);
-                cur_rates[i][j] = GetMaxElement(cur_rates) + 1;
+                cur_rates[i][j] = GetMaxElement(cur_rates);
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
@@ -177,7 +178,7 @@ namespace MathMod
 
         static void CalculatePenalties(List<List<int>> cur_rates,  ref List<int> column_of_penalty, ref List<int> row_of_penalty)
         {
-            int max_elem_to_add = GetMaxElement(cur_rates)+1;
+            int max_elem_to_add = GetMaxElement(cur_rates);
             int min = max_elem_to_add, premin = max_elem_to_add;
             for(int i = 0;i < cur_rates.Count; ++i)
             {
@@ -186,18 +187,22 @@ namespace MathMod
                     if (cur_rates[i][j] < min)
                     {
                         premin = min;
-                        min= cur_rates[i][j];
+                        min = cur_rates[i][j];
                     }
+                    else if (cur_rates[i][j] < premin && cur_rates[i][j] !=min) premin = cur_rates[i][j];
 
                 }
                 if (min == max_elem_to_add && premin == max_elem_to_add) column_of_penalty[i] = -1;
                 else if (premin == max_elem_to_add) column_of_penalty[i] = min;
                 else column_of_penalty[i] = premin - min;
+
+                Console.WriteLine("max {0}   min {1}   premin {2}  col {3}", max_elem_to_add, min, premin, column_of_penalty[i]);
+                min = max_elem_to_add; premin = max_elem_to_add;
             }
 
-            min = max_elem_to_add; premin = max_elem_to_add;
             for (int j = 0;j < cur_rates[0].Count; ++j)
             {
+                min = max_elem_to_add; premin = max_elem_to_add;
                 for (int i = 0; i < cur_rates.Count; ++i)
                 {
                     if (cur_rates[i][j] < min)
@@ -205,10 +210,13 @@ namespace MathMod
                         premin = min;
                         min = cur_rates[i][j];
                     }
+                    else if (cur_rates[i][j] < premin && cur_rates[i][j] != min) premin = cur_rates[i][j];
                 }
                 if (min == max_elem_to_add && premin == max_elem_to_add) row_of_penalty[j] = -1;
                 else if (premin == max_elem_to_add) row_of_penalty[j] = min;
                 else row_of_penalty[j] = premin - min;
+
+                Console.WriteLine("max {0}   min {1}   premin {2}  col {3}", max_elem_to_add, min, premin, row_of_penalty[j]);
             }
         }
 
@@ -225,6 +233,7 @@ namespace MathMod
             else
             {
                 int ind_max_in_row = row_of_penalty.FindIndex(x => x == row_of_penalty.Max());
+                //Console.WriteLine(ind_max_in_row);
                 int min_element_in_column = cur_rates[0][ind_max_in_row];
                 int min_ind = 0;
                 for (int i = 1; i < cur_rates.Count; ++i)
@@ -246,15 +255,38 @@ namespace MathMod
             List<List<int>> cur_rates = Init2DList(rates_),
                             cur_func = Init2DList(rates_.Count, rates_[0].Count, -1);
             List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
-
-
             //штрафы
             List<int> row_of_penalty = Init1DList(b_.Count,0), 
                       column_of_penalty = Init1DList(a_.Count,0);
-            CalculatePenalties(cur_rates, ref column_of_penalty, ref row_of_penalty);
-            (int, int) indexes_of_min_element = IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
-            //заполнение ячейки, минус из а, минус из б, пересчет
-            //до тех пор, пока имеются грузы и потребности
+
+            int max_element_to_add = GetMaxElement(cur_rates);
+            while(cur_a.Sum() > 0 && cur_b.Sum() > 0)
+            {
+                (int, int) min_indexes = IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
+
+                int i = min_indexes.Item1; int j = min_indexes.Item2;
+                Console.WriteLine("{0}   {1}",i,j);
+                int supply = Math.Min(cur_a[i], cur_b[j]);
+                //это можно на функции разбить
+                if(cur_a[i]==cur_b[j]) 
+                { 
+                    for(int jk=0; jk< cur_rates.Count; jk++)cur_rates[i][jk] = max_element_to_add;
+                    for(int ik=0; ik< cur_rates.Count; ik++)cur_rates[ik][j]=  max_element_to_add;
+                }
+                else if(cur_a[i] == supply)
+                {
+                    for (int jk = 0; jk < cur_rates.Count; jk++)cur_rates[i][jk] = max_element_to_add;
+                }
+                else
+                {
+                    for (int ik = 0; ik < cur_rates.Count; ik++) cur_rates[ik][j] = max_element_to_add;
+                }
+                cur_rates[i][j] = max_element_to_add;
+                cur_func[i][j] = supply;
+                cur_a[i] -= supply;
+                cur_b[j] -= supply;
+            }
+            optimal_ = cur_func;
         }
 
         public List<List<int>> GetOptimalPlan()
