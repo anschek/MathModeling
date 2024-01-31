@@ -23,7 +23,7 @@ c1.Add(new List<int> { 2, 25, 14, 15, 21 });
 
 TransportProblem transport_problem1 = new TransportProblem(a1, b1, c1);
 transport_problem1.MethodOfMinElement();
-TransportProblem.PrintMatrix(transport_problem1.GetOptimalDistribution());
+TransportProblem.PrintMatrix(transport_problem1.GetOptimalPlan());
 
 Console.WriteLine(transport_problem1.GetObjectiveFunction());
 Console.WriteLine(transport_problem1.IsNonDegenerate());
@@ -49,7 +49,7 @@ c2.Add(new List<int> { 3,15,20,6 });
 
 transport_problem1.NewTransportProblem(a2, b2, c2);
 transport_problem1.MethodOfMinElement();
-TransportProblem.PrintMatrix(transport_problem1.GetOptimalDistribution());
+TransportProblem.PrintMatrix(transport_problem1.GetOptimalPlan());
 
 Console.WriteLine(transport_problem1.GetObjectiveFunction());
 Console.WriteLine(transport_problem1.IsNonDegenerate());

@@ -111,27 +111,54 @@ namespace MathMod
             return (-1, -1);//в случае ошибки
         }
 
+        static List<int> Init1DList( int size, int fill)
+        {
+            List<int> list = new List<int>();
+            for(int i = 0;i < size; ++i)
+            {
+                list.Add(fill);
+            }
+            return list;
+        }
+
+        static List<int> Init1DList(List<int> orig)
+        {
+            List<int> copy = new List<int>();
+            for (int i = 0; i < orig.Count; ++i)
+            {
+                copy.Add(orig[i]);
+            }
+            return copy;
+        }
+
+        static List<List<int>> Init2DList(int size0, int size1, int fill)
+        {
+            List < List<int> >list = new List<List<int>>();
+            for (int i = 0; i < size0; ++i)
+            {
+                list.Add(Init1DList(size1, fill));
+            }
+            return list;
+        }
+
+        static List<List<int>> Init2DList(List<List<int>> orig)
+        {
+            List<List<int>> copy = new List<List<int>>();
+            for (int i = 0; i < orig.Count; ++i)
+            {
+                copy.Add(Init1DList(orig[i]));
+            }
+            return copy;
+        }
+
         public void MethodOfMinElement()
         {
-            //init lists
-            List<List<int>> cur_rates = new List<List<int>> { };
-            List<List<int>> cur_func = new List<List<int>> { };
-            List<int> cur_a = new List<int> { };
-            List<int> cur_b = new List<int> { };
-            for (int i = 0; i < rates_.Count; ++i)
-            {
-                cur_rates.Add(new List<int> { });
-                cur_func.Add(new List<int> { });
-                cur_a.Add(a_[i]);
-                for (int j = 0; j < rates_[0].Count; ++j)
-                {
-                    cur_func[i].Add(0);
-                    cur_rates[i].Add(rates_[i][j]);
-                    cur_b.Add(b_[j]);
-                }
-            }
+            //инициализация списков
+            List<List<int>> cur_rates = Init2DList(rates_), 
+                            cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
+            List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
 
-
+            //алгоритм
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
                 (int, int) min_indexes = GetMinIndex(cur_rates);
@@ -148,7 +175,89 @@ namespace MathMod
             optimal_ = cur_func;
         }
 
-        public List<List<int>> GetOptimalDistribution()
+        static void CalculatePenalties(List<List<int>> cur_rates,  ref List<int> column_of_penalty, ref List<int> row_of_penalty)
+        {
+            int max_elem_to_add = GetMaxElement(cur_rates)+1;
+            int min = max_elem_to_add, premin = max_elem_to_add;
+            for(int i = 0;i < cur_rates.Count; ++i)
+            {
+                for(int j = 0;j < cur_rates[0].Count; ++j)
+                {
+                    if (cur_rates[i][j] < min)
+                    {
+                        premin = min;
+                        min= cur_rates[i][j];
+                    }
+
+                }
+                if (min == max_elem_to_add && premin == max_elem_to_add) column_of_penalty[i] = -1;
+                else if (premin == max_elem_to_add) column_of_penalty[i] = min;
+                else column_of_penalty[i] = premin - min;
+            }
+
+            min = max_elem_to_add; premin = max_elem_to_add;
+            for (int j = 0;j < cur_rates[0].Count; ++j)
+            {
+                for (int i = 0; i < cur_rates.Count; ++i)
+                {
+                    if (cur_rates[i][j] < min)
+                    {
+                        premin = min;
+                        min = cur_rates[i][j];
+                    }
+                }
+                if (min == max_elem_to_add && premin == max_elem_to_add) row_of_penalty[j] = -1;
+                else if (premin == max_elem_to_add) row_of_penalty[j] = min;
+                else row_of_penalty[j] = premin - min;
+            }
+        }
+
+        static (int,int) IndexesOfMinElementWithMaxPenalty(List<List<int>> cur_rates, List<int> column_of_penalty, List<int> row_of_penalty)
+        {
+            if (column_of_penalty.Max() > row_of_penalty.Max())
+            {
+                int ind_max_in_column = column_of_penalty.FindIndex(x => x == column_of_penalty.Max());
+                return (ind_max_in_column, (
+                    cur_rates[ind_max_in_column].FindIndex(x => x == cur_rates[ind_max_in_column].Min())
+                    ));
+
+            }
+            else
+            {
+                int ind_max_in_row = row_of_penalty.FindIndex(x => x == row_of_penalty.Max());
+                int min_element_in_column = cur_rates[0][ind_max_in_row];
+                int min_ind = 0;
+                for (int i = 1; i < cur_rates.Count; ++i)
+                {
+                    if (cur_rates[i][ind_max_in_row] < min_element_in_column) 
+                    {
+                        min_element_in_column = cur_rates[i][ind_max_in_row];
+                        min_ind = i;
+                    }
+                }
+                return (min_ind, ind_max_in_row) ;
+            }
+        }
+        
+
+        public void MethodOfVogelApproximation()
+        {
+            //инициализация списков
+            List<List<int>> cur_rates = Init2DList(rates_),
+                            cur_func = Init2DList(rates_.Count, rates_[0].Count, -1);
+            List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
+
+
+            //штрафы
+            List<int> row_of_penalty = Init1DList(b_.Count,0), 
+                      column_of_penalty = Init1DList(a_.Count,0);
+            CalculatePenalties(cur_rates, ref column_of_penalty, ref row_of_penalty);
+            (int, int) indexes_of_min_element = IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
+            //заполнение ячейки, минус из а, минус из б, пересчет
+            //до тех пор, пока имеются грузы и потребности
+        }
+
+        public List<List<int>> GetOptimalPlan()
         {
             return optimal_;
         }
