@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Runtime;
 using System.Reflection.Metadata;
+using System.Xml;
 
 namespace MathMod
 {
@@ -81,8 +82,7 @@ namespace MathMod
             {
                 for (int j = 0; j < matrix[0].Count; ++j)
                 {
-                    Console.Write(matrix[i][j]);
-                    Console.Write("  ");
+                    Console.Write(matrix[i][j] + "  ");
                 }
                 Console.WriteLine();
             }
@@ -303,6 +303,117 @@ namespace MathMod
             }
             optimal_ = cur_func;
         }
+
+        (Dictionary<(int, int), int>, Dictionary<(int, int), int>) FindPreferredElements(List<List<int>> cur_rates)
+        {
+            List<List<int>> preferred = Init2DList(rates_.Count, rates_[0].Count, 0);
+            for (int i = 0; i < cur_rates.Count; ++i)
+            {
+                int cur_min = cur_rates[i][0];
+                int min_ind = 0;
+                for (int j = 1; j < cur_rates[0].Count; ++j)
+                {
+                    if (cur_rates[i][j] < cur_min) 
+                    { 
+                        cur_min = cur_rates[i][j];
+                        min_ind = j;
+                    }
+                }
+                ++preferred[i][min_ind];
+            }
+            //В СТРОКЕ И СТОЛБЦЕ ЕСТЬ НЕСКОЛЬКО МИН ЭЛЕМЕНТОВ!
+
+            for (int j = 0; j < cur_rates[0].Count; ++j)
+            {
+                int cur_min = cur_rates[0][j];
+                int min_ind = 0;
+                for (int i = 1; i < cur_rates.Count; ++i)
+                {
+                    if (cur_rates[i][j] < cur_min)
+                    {
+                        cur_min = cur_rates[i][j];
+                        min_ind = i;
+                    }
+                }
+                ++preferred[min_ind][j];
+            }
+            PrintMatrix(preferred);
+            //ПОМЕНЯТЬ КЛЮЧИ И ЗНАЧЕНИЯ, СОРТИРОВАТЬ ПО ЗНАЧЕНИЮ
+
+            Dictionary<(int, int), int> preferred_plus_plus= new Dictionary<(int, int), int>();
+            Dictionary<(int, int), int> preferred_plus = new Dictionary<(int, int), int>();
+            for(int i = 0; i < preferred.Count; ++i)
+            {
+                for(int j=0; j < preferred[0].Count; ++j)
+                {
+                    if (preferred[i][j] == 2)
+                    {
+                        preferred_plus_plus[(i,j)] = cur_rates[i][j];
+                    }
+                    else if (preferred[i][j] ==1)
+                    {
+                        preferred_plus_plus[(i, j)] = cur_rates[i][j];
+                    }
+                }
+            }
+            return (preferred_plus_plus.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value), 
+                preferred_plus.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value));
+        }
+
+        
+        public void DoublePreferenceMethod()
+        {
+            //инициализация списков
+            List<List<int>> cur_rates = Init2DList(rates_),
+                            cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
+            List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
+            //метод
+            int max_element_to_add = GetMaxElement(cur_rates);
+            (Dictionary<(int, int), int> plus_plus, Dictionary<(int, int), int> plus) = FindPreferredElements(cur_rates);
+
+            foreach (((int i, int j), int x) in plus_plus)
+            {
+                Console.WriteLine(x + "  :" + i + "," + j);
+            }
+            Console.WriteLine();
+
+            foreach (((int i, int j), int x) in plus)
+            {
+                Console.WriteLine(x + "  :" + i + "," + j);
+            }
+
+
+            foreach (((int i, int j), _) in plus_plus)
+            {
+                int supply = Math.Min(cur_a[i], cur_b[j]);
+                cur_rates[i][j] = max_element_to_add;
+                cur_func[i][j] = supply;
+                cur_a[i] -= supply;
+                cur_b[j] -= supply;
+                //Console.WriteLine(supply + "   :" + i + "," + j);
+            }            
+            foreach (((int i, int j), _) in plus)
+            {
+                int supply = Math.Min(cur_a[i], cur_b[j]);
+                cur_rates[i][j] = max_element_to_add;
+                cur_func[i][j] = supply;
+                cur_a[i] -= supply;
+                cur_b[j] -= supply;
+                //Console.WriteLine(supply + "   :" + i + "," + j);
+            }
+            while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
+            {
+                (int i, int j) = GetMinIndex(cur_rates);
+                int supply = Math.Min(cur_a[i], cur_b[j]);
+                cur_rates[i][j] = GetMaxElement(cur_rates);
+                cur_func[i][j] = supply;
+                cur_a[i] -= supply;
+                cur_b[j] -= supply;
+                //Console.WriteLine(supply + "   :" + i + "," + j);
+            }
+            optimal_ = cur_func;
+        }
+       
 
         public List<List<int>> GetOptimalPlan()
         {
