@@ -22,9 +22,9 @@ namespace MathMod
 
         enum ClosednessType
         {
-            Close,
-            ShortageOfSupply,
-            SurplusOfSupply
+            Close,                  //закрытая
+            ShortageOfSupply,      //нехваток поставок 
+            SurplusOfSupply       //избыток поставок 
         }
 
         public TransportProblem(List<int> a, List<int> b, List<List<int>> c)
@@ -35,7 +35,6 @@ namespace MathMod
         public void NewTransportProblem(List<int> a, List<int> b, List<List<int>> c)
         {
             a_ = a; b_ = b; rates_ = c;
-
             if (ListSum(a_) == ListSum(b_)) type_ = ClosednessType.Close;
             else ReduceProblemToClosed();
         }
@@ -44,7 +43,7 @@ namespace MathMod
         {
             return list.Select(x => x).Sum(); ;
         }
-        
+        //свести задачу к закрытой
         void ReduceProblemToClosed()
         {
             int SumA = ListSum(a_);
@@ -53,26 +52,18 @@ namespace MathMod
             int max_elem_to_add = GetMaxElement(rates_);
             //не хватает груза
             if (SumA < SumB)
-            {
+            {//добавляем фиктивного поставщика - строку
                 a_.Add(diff);
-                //добавляем фиктивного поставщика - строку
                 rates_.Add(new List<int> { });
                 for (int j = 0; j < rates_[0].Count(); ++j)
-                {
                     rates_[rates_.Count - 1].Add(max_elem_to_add);
-                    //rates_[rates_.Count - 1][j] = max_elem_to_add;
-                }
             }
-            else
-            {
+            else //не хаватет потребителей
+            {//добавляем фиктивного потребителя - столбец
                 b_.Add(diff);
-                //добавляем фиктивного потребителя - столбец
                 type_ = ClosednessType.SurplusOfSupply;
                 for (int i = 0; i < rates_.Count(); ++i)
-                {
                     rates_[i].Add(max_elem_to_add);
-                    //rates_[rates_[0].Count - 1] = max_elem_to_add;
-                }
             }
         }
 
@@ -159,20 +150,15 @@ namespace MathMod
             List<List<int>> cur_rates = Init2DList(rates_), 
                             cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
             List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
-
             //алгоритм
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
-                (int, int) min_indexes = GetMinIndex(cur_rates);
-
-                int i = min_indexes.Item1; int j = min_indexes.Item2;
-
+                (int i, int j) = GetMinIndex(cur_rates);
                 int supply = Math.Min(cur_a[i], cur_b[j]);
                 cur_rates[i][j] = GetMaxElement(cur_rates);
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
-
             }
             optimal_ = cur_func;
         }
@@ -181,6 +167,7 @@ namespace MathMod
         {
             int max_elem_to_add = GetMaxElement(cur_rates);
             int min = max_elem_to_add, premin = max_elem_to_add;
+            //штрафы пос строкам
             for(int i = 0;i < cur_rates.Count; ++i)
             {
                 for(int j = 0;j < cur_rates[0].Count; ++j)
@@ -189,16 +176,18 @@ namespace MathMod
                     {
                         premin = min;
                         min = cur_rates[i][j];
-                    }
+                    }//разность должна рассчитываться между разными элементами
                     else if (cur_rates[i][j] < premin && cur_rates[i][j] !=min) premin = cur_rates[i][j];
 
                 }
+                //если значения явл-ся исходными, строка уже закрыта, если есть только один минимум, он и является штрафом
+                //если минимума два - штраф явл-ся их разностью
                 if (min == max_elem_to_add && premin == max_elem_to_add) column_of_penalty[i] = -1;
                 else if (premin == max_elem_to_add) column_of_penalty[i] = min;
                 else column_of_penalty[i] = premin - min;
                 min = max_elem_to_add; premin = max_elem_to_add;
             }
-
+            //штрафы по столбцам
             for (int j = 0;j < cur_rates[0].Count; ++j)
             {
                 min = max_elem_to_add; premin = max_elem_to_add;
@@ -216,34 +205,32 @@ namespace MathMod
                 else row_of_penalty[j] = premin - min;
             }
         }
-
+        //Индексы минимального элемента с максимальным штрафом
         static (int,int) IndexesOfMinElementWithMaxPenalty(List<List<int>> cur_rates, List<int> column_of_penalty, List<int> row_of_penalty)
         {
+            //если макс элемент находится в столбце штрафов
             if (column_of_penalty.Max() > row_of_penalty.Max())
-            {
+            {//возвращаем i-такой индекс столбца штрафов (строки матрицы), что штраф максимален
+             //j-такой индекс этой строки матрицы, что элемент на строке минимален
                 int ind_max_in_column = column_of_penalty.FindIndex(x => x == column_of_penalty.Max());
                 return (ind_max_in_column, (
-                    cur_rates[ind_max_in_column].FindIndex(x => x == cur_rates[ind_max_in_column].Min())
-                    ));
-
+                    cur_rates[ind_max_in_column].FindIndex(x => x == cur_rates[ind_max_in_column].Min())));
             }
             else
-            {
+            {//находим индекс максимального штрафа в строке, это итоговый j
+             //i находим перебором по столбцу с индексом j
                 int ind_max_in_row = row_of_penalty.FindIndex(x => x == row_of_penalty.Max());
                 int min_element_in_column = cur_rates[0][ind_max_in_row];
                 int min_ind = 0;
                 for (int i = 1; i < cur_rates.Count; ++i)
-                {
                     if (cur_rates[i][ind_max_in_row] < min_element_in_column) 
                     {
                         min_element_in_column = cur_rates[i][ind_max_in_row];
                         min_ind = i;
                     }
-                }
-                return (min_ind, ind_max_in_row) ;
+                return (min_ind, ind_max_in_row);
             }
         }
-        
 
         public void MethodOfVogelApproximation()
         {
@@ -254,29 +241,16 @@ namespace MathMod
             //штрафы
             List<int> row_of_penalty = Init1DList(b_.Count,0), 
                       column_of_penalty = Init1DList(a_.Count,0);
-
+            //найти макс элемент матрицы, которым будут заменяться ячейки, чтобы их нельзя было определить, как минимальные
             int max_element_to_add = GetMaxElement(cur_rates);
             while(cur_a.Sum() > 0 && cur_b.Sum() > 0)
-            {
+            {//расчет штрафов, поиск индексов нужного эл-та
                 CalculatePenalties(cur_rates, ref column_of_penalty, ref row_of_penalty);
-                (int, int) min_indexes = IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
-
-                int i = min_indexes.Item1; int j = min_indexes.Item2;
+                (int i, int j)= IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
                 int supply = Math.Min(cur_a[i], cur_b[j]);
-                //это можно на функции разбить
-                if(cur_a[i]==cur_b[j]) 
-                { 
-                    for(int jk=0; jk< cur_rates.Count; jk++)cur_rates[i][jk] = max_element_to_add;
-                    for(int ik=0; ik< cur_rates.Count; ik++)cur_rates[ik][j]=  max_element_to_add;
-                }
-                else if(cur_a[i] == supply)
-                {
-                    for (int jk = 0; jk < cur_rates.Count; jk++)cur_rates[i][jk] = max_element_to_add;
-                }
-                else
-                {
-                    for (int ik = 0; ik < cur_rates.Count; ik++) cur_rates[ik][j] = max_element_to_add;
-                }
+                //если в ряде минимум, в текущих тарифах заменяем элемент, чтоб к нему не возвращаться
+                if(cur_a[i] == supply)for (int jk = 0; jk < cur_rates.Count; jk++)cur_rates[i][jk] = max_element_to_add;
+                if(cur_b[j] == supply)for (int ik = 0; ik < cur_rates.Count; ik++) cur_rates[ik][j] = max_element_to_add;
                 cur_rates[i][j] = max_element_to_add;
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
@@ -289,7 +263,7 @@ namespace MathMod
             //инициализация списков
             List<List<int>> cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
             List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
-            //метод
+            //проходимя по ячейкам, сдивагая их по степени того, как заканчиваются грузы/потребности
             int i=0, j=0;
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
@@ -303,7 +277,7 @@ namespace MathMod
             }
             optimal_ = cur_func;
         }
-
+        //Поиск словарей (индекс строки, индекс столбца) элемент для ячеек с ++ и +
         (Dictionary<(int, int), int>, Dictionary<(int, int), int>) FindPreferredElements(List<List<int>> cur_rates)
         {
             List<List<int>> preferred = Init2DList(rates_.Count, rates_[0].Count, 0);
@@ -321,8 +295,6 @@ namespace MathMod
                 }
                 ++preferred[i][min_ind];
             }
-            //В СТРОКЕ И СТОЛБЦЕ ЕСТЬ НЕСКОЛЬКО МИН ЭЛЕМЕНТОВ!
-
             for (int j = 0; j < cur_rates[0].Count; ++j)
             {
                 int cur_min = cur_rates[0][j];
@@ -337,29 +309,19 @@ namespace MathMod
                 }
                 ++preferred[min_ind][j];
             }
-            PrintMatrix(preferred);
-            //ПОМЕНЯТЬ КЛЮЧИ И ЗНАЧЕНИЯ, СОРТИРОВАТЬ ПО ЗНАЧЕНИЮ
-
             Dictionary<(int, int), int> preferred_plus_plus= new Dictionary<(int, int), int>();
             Dictionary<(int, int), int> preferred_plus = new Dictionary<(int, int), int>();
             for(int i = 0; i < preferred.Count; ++i)
             {
                 for(int j=0; j < preferred[0].Count; ++j)
                 {
-                    if (preferred[i][j] == 2)
-                    {
-                        preferred_plus_plus[(i,j)] = cur_rates[i][j];
-                    }
-                    else if (preferred[i][j] ==1)
-                    {
-                        preferred_plus_plus[(i, j)] = cur_rates[i][j];
-                    }
+                    if (preferred[i][j] == 2) preferred_plus_plus[(i,j)] = cur_rates[i][j]; 
+                    else if (preferred[i][j] ==1)preferred_plus_plus[(i, j)] = cur_rates[i][j]; 
                 }
             }
             return (preferred_plus_plus.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value), 
                 preferred_plus.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value));
         }
-
         
         public void DoublePreferenceMethod()
         {
@@ -370,19 +332,6 @@ namespace MathMod
             //метод
             int max_element_to_add = GetMaxElement(cur_rates);
             (Dictionary<(int, int), int> plus_plus, Dictionary<(int, int), int> plus) = FindPreferredElements(cur_rates);
-
-            foreach (((int i, int j), int x) in plus_plus)
-            {
-                Console.WriteLine(x + "  :" + i + "," + j);
-            }
-            Console.WriteLine();
-
-            foreach (((int i, int j), int x) in plus)
-            {
-                Console.WriteLine(x + "  :" + i + "," + j);
-            }
-
-
             foreach (((int i, int j), _) in plus_plus)
             {
                 int supply = Math.Min(cur_a[i], cur_b[j]);
@@ -390,7 +339,6 @@ namespace MathMod
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
-                //Console.WriteLine(supply + "   :" + i + "," + j);
             }            
             foreach (((int i, int j), _) in plus)
             {
@@ -399,7 +347,6 @@ namespace MathMod
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
-                //Console.WriteLine(supply + "   :" + i + "," + j);
             }
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
@@ -409,12 +356,10 @@ namespace MathMod
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
-                //Console.WriteLine(supply + "   :" + i + "," + j);
             }
             optimal_ = cur_func;
         }
        
-
         public List<List<int>> GetOptimalPlan()
         {
             return optimal_;
@@ -425,7 +370,7 @@ namespace MathMod
             return (a_.Count + b_.Count - 1
                 == optimal_.SelectMany(x => x).Count(x => x!=0));
         }
-
+        //получить целевую функцию
         public int GetObjectiveFunction()
         {
             int objective_func = 0;
