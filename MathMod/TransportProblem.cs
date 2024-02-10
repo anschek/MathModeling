@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Runtime;
+using System.Reflection.Metadata;
 
 namespace MathMod
 {
@@ -282,6 +283,25 @@ namespace MathMod
                 cur_b[j] -= supply;
             }
             optimal_ = cur_func;
+        }        
+        public void NorthWestAngleMethod()
+        {
+            //инициализация списков
+            List<List<int>> cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
+            List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
+            //метод
+            int i=0, j=0;
+            while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
+            {
+                int cur_i = i, cur_j = j;
+                int supply = Math.Min(cur_a[cur_i], cur_b[cur_j]);
+                cur_func[cur_i][cur_j] = supply;
+                if (cur_a[cur_i] == supply) ++i;
+                if (cur_b[cur_j] == supply) ++j;
+                cur_a[cur_i] -= supply;
+                cur_b[cur_j] -= supply;
+            }
+            optimal_ = cur_func;
         }
 
         public List<List<int>> GetOptimalPlan()
@@ -310,9 +330,6 @@ namespace MathMod
                 }
             }
             return objective_func;
-
         }
-
-
     }
 }
