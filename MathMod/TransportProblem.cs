@@ -42,9 +42,10 @@
             if (SumA < SumB)
             {//добавляем фиктивного поставщика - строку
                 a_.Add(diff);
+                type_ = ClosednessType.ShortageOfSupply;
                 rates_.Add(new List<int> { });
                 for (int j = 0; j < rates_[0].Count(); ++j)
-                    rates_[rates_.Count - 1].Add(max_elem_to_add);
+                    rates_[rates_.Count - 1].Add(max_elem_to_add+1+j);
             }
             else //не хаватет потребителей
             {//добавляем фиктивного потребителя - столбец
