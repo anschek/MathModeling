@@ -52,7 +52,7 @@
                 b_.Add(diff);
                 type_ = ClosednessType.SurplusOfSupply;
                 for (int i = 0; i < rates_.Count(); ++i)
-                    rates_[i].Add(max_elem_to_add);
+                    rates_[i].Add(max_elem_to_add+1+i);
             }
         }
 
@@ -63,6 +63,31 @@
                 for (int j = 0; j < matrix[0].Count; ++j)
                     Console.Write(matrix[i][j] + "  ");
                 Console.WriteLine();
+            }
+        }        
+        public void PrintReferencePlan()
+        {
+            switch (type_)
+            {
+                case ClosednessType.Close:
+                    PrintMatrix(optimal_);
+                    return;
+                case ClosednessType.SurplusOfSupply:
+                    for (int i = 0; i < optimal_.Count; ++i)
+                    {
+                        for (int j = 0; j < optimal_[0].Count -1; ++j)
+                            Console.Write(optimal_[i][j] + "  ");
+                        Console.WriteLine();
+                    }
+                    return;                
+                case ClosednessType.ShortageOfSupply:
+                    for (int i = 0; i < optimal_.Count - 1; ++i)
+                    {
+                        for (int j = 0; j < optimal_[0].Count; ++j)
+                            Console.Write(optimal_[i][j] + "  ");
+                        Console.WriteLine();
+                    }
+                    return;
             }
         }
 
@@ -215,7 +240,7 @@
             List<int> row_of_penalty = Init1DList(b_.Count, 0),
                       column_of_penalty = Init1DList(a_.Count, 0);
             //найти макс элемент матрицы, которым будут заменяться ячейки, чтобы их нельзя было определить, как минимальные
-            int max_element_to_add = GetMaxElement(cur_rates);
+            int max_element_to_add = GetMaxElement(cur_rates) + 1;
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {//расчет штрафов, поиск индексов нужного эл-та
                 CalculatePenalties(cur_rates, ref column_of_penalty, ref row_of_penalty);
