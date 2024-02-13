@@ -149,12 +149,13 @@
             List<List<int>> cur_rates = Init2DList(rates_),
                             cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
             List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
+            int max_element_to_add = GetMaxElement(rates_);
             //алгоритм
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
                 (int i, int j) = GetMinIndex(cur_rates);
                 int supply = Math.Min(cur_a[i], cur_b[j]);
-                cur_rates[i][j] = GetMaxElement(cur_rates);
+                cur_rates[i][j] = max_element_to_add;
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
@@ -246,9 +247,6 @@
                 CalculatePenalties(cur_rates, ref column_of_penalty, ref row_of_penalty);
                 (int i, int j) = IndexesOfMinElementWithMaxPenalty(cur_rates, column_of_penalty, row_of_penalty);
                 int supply = Math.Min(cur_a[i], cur_b[j]);
-                //если в ряде минимум, в текущих тарифах заменяем элемент, чтоб к нему не возвращаться
-                if (cur_a[i] == supply) for (int jk = 0; jk < cur_rates.Count; jk++) cur_rates[i][jk] = max_element_to_add;
-                if (cur_b[j] == supply) for (int ik = 0; ik < cur_rates.Count; ik++) cur_rates[ik][j] = max_element_to_add;
                 cur_rates[i][j] = max_element_to_add;
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
