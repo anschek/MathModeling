@@ -426,7 +426,6 @@
                             {
                                 if (potential_column[i] != 0) potential_row[j] = rates_[i][j] - potential_column[i];
                                 if (potential_row[j] != 0) potential_column[i] = rates_[i][j] - potential_row[j];
-
                                 ++filled_count;
                                 reload_iteration = true;
                                 break;
@@ -438,7 +437,6 @@
                 //если задача вырождена, а мы заполнили все потенциалы, что могли
                 if (!IsNonDegenerate(reference_plan) && filled_count == degenerate_plan && (degenerate_plan != non_degenerate_plan))
                 {
-                    Console.WriteLine("FFFFFFFF");
                     (int min_i, int min_j) = GetMinElementInFreeCell(reference_plan, step_in_degenerate)[step_in_degenerate - 1];
                     if (potential_column[min_i] == 0 && potential_row[min_j] == 0)
                     {
@@ -451,6 +449,7 @@
                             potential_row[min_j] = rates_[min_i][min_j] - potential_column[min_i];
                         if (potential_row[min_j] != 0)
                             potential_column[min_i] = rates_[min_i][min_j] - potential_row[min_j];
+                        Console.WriteLine($"Введен 0 в ячейку[{min_i}][{min_j}] с минимальным тарифом {rates_[min_i][min_j]}");
                         ++filled_count;//потенциал заполнен
                         potential_count_without_nuls+=2;//если план вырожденный, а мы заполнили ячейку, то в нем стало на возможную заполненную ячейку больше
                     }

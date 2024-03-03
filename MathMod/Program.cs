@@ -36,8 +36,6 @@ TransportProblem transport_problem2 = new TransportProblem(a2, b2, c2);
 
 transport_problem2.MethodOfMinElement();
 transport_problem2.PrintReferencePlan();
-Console.WriteLine("L(x) = " + transport_problem2.GetObjectiveFunction());
-Console.WriteLine("План невырожденный: " + transport_problem2.IsNonDegenerate() + "\n");
 
 is_optimal = transport_problem2.AssessOptimality();
 if (is_optimal)
@@ -61,8 +59,6 @@ TransportProblem transport_problem3 = new TransportProblem(a3, b3, c3);
 
 transport_problem3.MethodOfVogelApproximation();
 transport_problem3.PrintReferencePlan();
-Console.WriteLine("L(x) = " + transport_problem3.GetObjectiveFunction());
-Console.WriteLine("План невырожденный: " + transport_problem3.IsNonDegenerate() + "\n");
 
 is_optimal = transport_problem3.AssessOptimality();
 if (is_optimal)
@@ -72,21 +68,19 @@ if (is_optimal)
     transport_problem3.PrintReferencePlan();
 }
 
-Console.WriteLine("\n-----Задача№4. Открытая задача + вырожденный план-----------------------------");
+Console.WriteLine("\n-----Задача№4. Двойной ноль-----------------------------------------------------");
 
-List<int> a4 = new List<int> { 240, 40, 110 };
-List<int> b4 = new List<int> { 90, 190, 40, 130 };
+List<int> a4 = new List<int> { 10,8,7 };
+List<int> b4 = new List<int> { 6,7,8,5 };
 List<List<int>> c4 = new List<List<int>> { };
-c4.Add(new List<int> {7, 13, 9, 8 });
-c4.Add(new List<int> {14, 8, 7, 10 });
-c4.Add(new List<int> { 3, 15, 20, 6 });
+c4.Add(new List<int> { 100,150,500,150 });
+c4.Add(new List<int> { 420,180,60,120 });
+c4.Add(new List<int> { 200,250,120,150 });
 
 TransportProblem transport_problem4 = new TransportProblem(a4, b4, c4);
 
 transport_problem4.MethodOfVogelApproximation();
 transport_problem4.PrintReferencePlan();
-Console.WriteLine("L(x) = " + transport_problem4.GetObjectiveFunction());
-Console.WriteLine("План невырожденный: " + transport_problem4.IsNonDegenerate() + "\n");
 
 is_optimal = transport_problem4.AssessOptimality();
 if (is_optimal)
