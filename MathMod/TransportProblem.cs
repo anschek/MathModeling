@@ -45,14 +45,14 @@
                 type_ = ClosednessType.ShortageOfSupply;
                 rates_.Add(new List<int> { });
                 for (int j = 0; j < rates_[0].Count(); ++j)
-                    rates_[rates_.Count - 1].Add(max_elem_to_add+1+j);
+                    rates_[rates_.Count - 1].Add(max_elem_to_add + 1 + j);
             }
             else //не хаватет потребителей
             {//добавляем фиктивного потребителя - столбец
                 b_.Add(diff);
                 type_ = ClosednessType.SurplusOfSupply;
                 for (int i = 0; i < rates_.Count(); ++i)
-                    rates_[i].Add(max_elem_to_add+1+i);
+                    rates_[i].Add(max_elem_to_add + 1 + i);
             }
         }
 
@@ -64,7 +64,7 @@
                     Console.Write(matrix[i][j] + "  ");
                 Console.WriteLine();
             }
-        }        
+        }
         public void PrintReferencePlan()
         {
             switch (type_)
@@ -75,11 +75,11 @@
                 case ClosednessType.SurplusOfSupply:
                     for (int i = 0; i < optimal_.Count; ++i)
                     {
-                        for (int j = 0; j < optimal_[0].Count -1; ++j)
+                        for (int j = 0; j < optimal_[0].Count - 1; ++j)
                             Console.Write(optimal_[i][j] + "  ");
                         Console.WriteLine();
                     }
-                    return;                
+                    return;
                 case ClosednessType.ShortageOfSupply:
                     for (int i = 0; i < optimal_.Count - 1; ++i)
                     {
@@ -149,7 +149,7 @@
             List<List<int>> cur_rates = Init2DList(rates_),
                             cur_func = Init2DList(rates_.Count, rates_[0].Count, 0);
             List<int> cur_a = Init1DList(a_), cur_b = Init1DList(b_);
-            int max_element_to_add = GetMaxElement(rates_);
+            int max_element_to_add = GetMaxElement(rates_) + 1;
             //алгоритм
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {
@@ -332,11 +332,12 @@
             foreach (((int i, int j), _) in plus_plus)
             {//проходимся по ++
                 int supply = Math.Min(cur_a[i], cur_b[j]);
-                cur_rates[i][j] = max_element_to_add;
+                cur_rates[i][j] = max_element_to_add + 1;
                 cur_func[i][j] = supply;
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
             }
+
             foreach (((int i, int j), _) in plus)
             {//проходимся по +
                 int supply = Math.Min(cur_a[i], cur_b[j]);
@@ -345,6 +346,8 @@
                 cur_a[i] -= supply;
                 cur_b[j] -= supply;
             }
+
+
             while (cur_a.Sum() > 0 && cur_b.Sum() > 0)
             {//из остальных эл-тов выбираем минимальные
                 (int i, int j) = GetMinIndex(cur_rates);
@@ -366,6 +369,11 @@
         {
             return (a_.Count + b_.Count - 1
                 == optimal_.SelectMany(x => x).Count(x => x != 0));
+        }        
+        public bool IsNonDegenerate(List<List<int>> reference_plan)
+        {
+            return (a_.Count + b_.Count - 1
+                == reference_plan.SelectMany(x => x).Count(x => x != 0));
         }
         //получить целевую функцию
         public int GetObjectiveFunction()
@@ -379,6 +387,182 @@
                 for (int j = 0; j < columns; ++j)
                     objective_func += rates_[i][j] * optimal_[i][j];
             return objective_func;
+        }
+
+//------ОЦЕНКА ОПТИМАЛЬНОСТИ---------------------------------------------------------------------------------------------------------------------------------------
+
+        (List<int>, List<int>) PotentialMethod(List<List<int>> reference_plan)
+        {
+            List<int> potential_column = Init1DList(a_.Count, 0);
+            List<int> potential_row = Init1DList(b_.Count, 0);
+            int filled_count = 1;//т.к. изначально первый потенциал столбца равен нулю
+            int step_in_degenerate = 1;
+            //проход по первой строке
+            for (int j = 0; j < reference_plan[0].Count; ++j)
+                if (reference_plan[0][j] != 0)
+                {
+                    potential_row[j] = rates_[0][j];//-0
+                    ++filled_count;
+                }
+            int non_degenerate_plan= potential_column.Count + potential_row.Count;//изначально кол-во потенциалов для невырожденной задачи
+            int degenerate_plan = 0;
+            int potential_count_without_nuls = non_degenerate_plan;
+            if(!IsNonDegenerate(reference_plan)){//из нач. кол-ва вычитается: ожидаемое m+n-1 - реальное, умноженное на 2 потенциала
+                potential_count_without_nuls -= (a_.Count+b_.Count-1-reference_plan.SelectMany(x => x).Count(x => x != 0))*2;
+                degenerate_plan = potential_count_without_nuls;
+            }
+            //хз есть ли подтвержденная форма, я эмпирически так посчитала..
+
+            while (filled_count < potential_count_without_nuls)
+            {//когда все потенциалы будут заполнены, цикл завершится
+                for (int i = 1; i < reference_plan.Count; ++i)//проходимся по занятым ячейкам
+                {//если заполнили ячейку, вощвращаемся к началу
+                    bool reload_iteration = false;
+                    for (int j = 0; j < reference_plan[0].Count; ++j)
+                        if (reference_plan[i][j] != 0)
+                        {
+                            if (potential_column[i] != 0 && potential_row[j] != 0) continue;//потенциалы уже рассчитаны
+                            else if (potential_column[i] != 0 || potential_row[j] != 0)
+                            {
+                                if (potential_column[i] != 0) potential_row[j] = rates_[i][j] - potential_column[i];
+                                if (potential_row[j] != 0) potential_column[i] = rates_[i][j] - potential_row[j];
+
+                                ++filled_count;
+                                reload_iteration = true;
+                                break;
+                            }//else - два потенциала пустые - ничего не делаем, идем дальше
+                        }
+                    if (reload_iteration) break;
+                }
+                
+                //если задача вырождена, а мы заполнили все потенциалы, что могли
+                if (!IsNonDegenerate(reference_plan) && filled_count == degenerate_plan && (degenerate_plan != non_degenerate_plan))
+                {
+                    Console.WriteLine("FFFFFFFF");
+                    (int min_i, int min_j) = GetMinElementInFreeCell(reference_plan, step_in_degenerate)[step_in_degenerate - 1];
+                    if (potential_column[min_i] == 0 && potential_row[min_j] == 0)
+                    {
+                        --filled_count;//для повтора итерации
+                        ++step_in_degenerate;//нужна другая пустая ячейка
+                    }
+                    else
+                    {
+                        if (potential_column[min_i] != 0)
+                            potential_row[min_j] = rates_[min_i][min_j] - potential_column[min_i];
+                        if (potential_row[min_j] != 0)
+                            potential_column[min_i] = rates_[min_i][min_j] - potential_row[min_j];
+                        ++filled_count;//потенциал заполнен
+                        potential_count_without_nuls+=2;//если план вырожденный, а мы заполнили ячейку, то в нем стало на возможную заполненную ячейку больше
+                    }
+                }
+            }
+            return (potential_column, potential_row);
+        }
+        //минимальный тариф у пустой ячейки
+        List<(int, int)> GetMinElementInFreeCell(List<List<int>> reference_plan, int step)
+        {
+            int min_el = GetMaxElement(rates_);
+            List<(int, int)> min_elems = new List<(int, int)>(step);
+            min_elems.Add((0, 0));
+            for (int i = 0; i < reference_plan.Count; ++i)
+                for (int j = 0; j < reference_plan.Count; ++j)
+                    if (min_el > rates_[i][j] && reference_plan[i][j] == 0)
+                    {
+                        min_el = rates_[i][j];
+                        min_elems.Insert(0, (i, j));
+                    }
+            return min_elems;
+        }
+
+
+        (bool, List<(int, int)>) FreeCellEstimation((List<int>, List<int>) potentials, List<List<int>> reference_plan)
+        {
+            Console.WriteLine("Оценка свободных ячеек:");
+            (List<int> potential_column, List<int> potential_row) = potentials;
+            List<(int, int)> positive_delta = new List<(int, int)>();
+            for (int i = 0; i < reference_plan.Count; ++i)
+            {
+                for (int j = 0; j < reference_plan[0].Count; ++j)
+                {
+                    if (reference_plan[i][j] == 0)
+                    {
+                        int cur_delta = potential_column[i] + potential_row[j] - rates_[i][j];
+                        Console.WriteLine("d[" + i + "][" + j + "] = " + cur_delta);
+                        if (cur_delta > 0) positive_delta.Add((i, j));
+                    }
+                }
+            }
+            return (positive_delta.Count == 0, positive_delta);
+        }
+
+        //проверка на оптимальность(вывод)
+        public bool PrintPotentialsInfo(List<List<int>> reference_plan)
+        {
+            (List<int> potential_column, List<int> potential_row) = PotentialMethod(reference_plan);
+            Console.WriteLine("Столбец потенциалов:");
+            for (int i = 0; i < potential_column.Count; ++i)
+                Console.WriteLine("u[" + i + "] = " + potential_column[i]);
+            Console.WriteLine("Строка потенциалов:");
+            for (int j = 0; j < potential_row.Count; ++j)
+                Console.WriteLine("v[" + j + "] = " + potential_row[j]);
+
+            (bool is_optimal, List<(int, int)> positive_delta) = FreeCellEstimation((potential_column, potential_row), reference_plan);
+            if (is_optimal) Console.WriteLine("Опорный план оптимален");
+            else
+            {
+                Console.WriteLine("Опорный план не оптимален. Дельта со следующими индексами положительна:");
+                foreach ((int i, int j) in positive_delta)
+                    Console.WriteLine($"d[{i}][{j}]>0");
+            }
+            return is_optimal;
+        }
+
+        List<List<int>> GetNewReferencePlan()
+        {
+            List<List<int>> new_reference_plan = new List<List<int>>();
+            int rows_num = optimal_.Count, clmns_num = optimal_[0].Count;
+            Console.WriteLine($"Введите новую матрицу размерностью {rows_num}x{clmns_num}");
+            for (int i = 0; i < rows_num; ++i)
+            {
+                List<int> new_row = Console.ReadLine().Split().Select(int.Parse).ToList();
+                new_reference_plan.Add(Init1DList(new_row));
+            }
+            return new_reference_plan;
+        }
+
+        public bool AssessOptimality()
+        {
+            bool continue_ = true;
+            bool is_first_itaration = true;
+            bool is_optimal = false;
+            List<List<int>> cur_reference_plan = optimal_;
+            string answer;
+            do
+            {
+                if (!is_first_itaration)
+                {
+                    Console.WriteLine("Хотите ввести новый опорный план для проверки на оптимальность?(Да/Нет)");
+                    answer = Console.ReadLine();
+                }
+                else answer = "да";
+
+                switch (answer.ToUpper())
+                {
+                    case "ДА":
+                        if (!is_first_itaration) cur_reference_plan = GetNewReferencePlan();
+                        is_optimal = PrintPotentialsInfo(cur_reference_plan);
+                        if (is_optimal) continue_ = false;
+                        break;
+                    case "НЕТ":
+                        continue_ = false;
+                        break;
+                    default:
+                        Console.WriteLine("Некорректный ввод");
+                        break;
+                }
+                if (is_first_itaration) is_first_itaration = false;
+            } while (continue_);
+            return is_optimal;
         }
     }
 }
