@@ -93,20 +93,37 @@
 
 //СИМПЛЕКС
 
-List<List<double>> a = new List<List<double>>{};
-a.Add(new List<double> {1,2,1,0,0 });
-a.Add(new List<double> {1,1,0,1,0 });
-a.Add(new List<double> {2,1,0,0,1 });
-List<double> b = new List<double> { 4,3,8 };
-List<double> c = new List<double> {-3,-4,0,0,0 };
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        List<List<double>> a = new List<List<double>> { };
+        a.Add(new List<double> { 1, 2, 1, 0, 0 });
+        a.Add(new List<double> { 1, 1, 0, 1, 0 });
+        a.Add(new List<double> { 2, 1, 0, 0, 1 });
+        List<double> b = new List<double> { 4, 3, 8 };
+        List<double> c = new List<double> { -3, -4, 0, 0, 0 };
 
-List<int> basis = new List<int> { 2, 3, 4 };
+        List<int> basis = new List<int> { 2, 3, 4 };
 
-LinearProblem lp1 = new LinearProblem (a,b,c, LinearProblem.problemType.max, basis );
-List<double> obj_fun = lp1.SimplexMethod();
-//divided_right_side = new List<double>(b.Count);
-//List<double> divided_right_side = b.Select(x => x).ToList();
+        //LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max, basis);
+        LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max);
+        lp.SimplexMethod();
+        Console.WriteLine(lp.GetObjectiveFun()+"\n");
 
-//Console.WriteLine($" 1:{b[1]} 2:{divided_right_side[1]}");
-//divided_right_side[1] = 10;
-//Console.WriteLine($" 1:{b[1]} 2:{divided_right_side[1]}");
+        List<List<double>> a1 = new List<List<double>> { };
+        a1.Add(new List<double> { 2, -1, 1, 1, 0, 0 });
+        a1.Add(new List<double> { -4, 2, -1, 0, 1, 0 });
+        a1.Add(new List<double> { 3, 0, 1, 0, 0, 1 });
+        List<double> b1 = new List<double> { 1, 2, 5 };
+        List<double> c1 = new List<double> { -1, 1, 3, 0, 0, 0 };
+
+        List<int> basis1 = new List<int> { 3,4,5 };
+
+        //LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min, basis1);        
+        LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min);
+        lp1.SimplexMethod();
+        Console.WriteLine(lp1.GetObjectiveFun());
+        
+    }
+}

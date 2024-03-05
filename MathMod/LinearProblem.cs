@@ -22,13 +22,43 @@ namespace MathMod
         problemType type_;
         List<int> basis_indexes_;
 
-        public LinearProblem(List<List<double>> a, List<double> b, List<double> c, problemType type, List<int> basis)
+        void PickOutBasis()
+        {
+            List<int> basis = new List<int>();
+            for (int j = 0; j < restrictions_[0].Count; ++j)
+            {
+                bool onlyCanonicalSigns = true;
+                int ones = 0;
+                for (int i = 0; i < restrictions_.Count; ++i)
+                {
+                    if (restrictions_[i][j] != 0 && restrictions_[i][j] != 1) 
+                    {
+                        onlyCanonicalSigns = false;
+                        break;
+                    }
+                    if (restrictions_[i][j] == 1) ++ones;
+                }
+                if (onlyCanonicalSigns && ones == 1) basis.Add(j);
+            }
+            if (basis.Count != restrictions_.Count) throw new ArgumentException($"Ожидаемая размерность базиса {restrictions_.Count}. Фактическая: {basis.Count}");
+            basis_indexes_ = basis;
+        }
+
+        //public LinearProblem(List<List<double>> a, List<double> b, List<double> c, problemType type, List<int> basis)
+        //{
+        //    restrictions_ = a;
+        //    free_variables_ = b;
+        //    objective_fun_ = c;
+        //    type_ = type;
+        //    PickOutBasis();
+        //}        
+        public LinearProblem(List<List<double>> a, List<double> b, List<double> c, problemType type)
         {
             restrictions_ = a;
             free_variables_ = b;
             objective_fun_ = c;
             type_ = type;
-            basis_indexes_ = basis;
+            PickOutBasis();
         }
         //возвращает -1, если в базис вводить нечего, иначе индекс вводимой переменной
         int EnteringIntoBasis()
@@ -50,7 +80,7 @@ namespace MathMod
             return divided_right_side.FindIndex(x => x == divided_right_side.FindAll(x => x > 0).Min());
         }
 
-        public List<double> SimplexMethod()
+        public void SimplexMethod()
         {
             bool is_optimal = false;
             while (!is_optimal)
@@ -63,51 +93,40 @@ namespace MathMod
                 }
                 int leading_row = DerivationFromBasis(leading_col);
                 double leading_elem = restrictions_[leading_row][leading_col];
-                Console.WriteLine($"[{leading_row}][{leading_col}] = {leading_elem}");
-
                 basis_indexes_[leading_row] = leading_col;
-                Console.WriteLine("Cur basis:");
-                foreach (int i in basis_indexes_) Console.WriteLine(i);
-                
                 for (int j = 0; j < restrictions_[0].Count; ++j)
-                {
                     restrictions_[leading_row][j] /= leading_elem;
-                    Console.WriteLine($"lead[{j}]={restrictions_[leading_row][j]}");
-                }
+
                 free_variables_[leading_row] /= leading_elem;
 
-                //free_variables_[leading_row] /= leading_elem;
                 double divider;
-                //С ЭТОГО МЕСТА ЧТО-ТО НЕ ТАК
                 for (int i = 0; i < restrictions_.Count; ++i)
                 {
                     if (i == leading_row) continue;
                     divider = -restrictions_[i][leading_col];
                     for (int j = 0; j < restrictions_[0].Count; ++j)
-                    {
                         restrictions_[i][j] += divider * restrictions_[leading_row][j];
-                    }
                     free_variables_[i] += divider * free_variables_[leading_row];
-                    Console.WriteLine($"free[{i}]={free_variables_[i]}");
                 }
                 divider = -objective_fun_[leading_col];
                 for (int j = 0; j < restrictions_[0].Count; ++j)
-                {
                     objective_fun_[j] += divider * restrictions_[leading_row][j];
-                    Console.WriteLine($"obj[{j}]={objective_fun_[j]}");
-                }
-                objective_fun_value += divider * free_variables_[leading_row];
-                Console.WriteLine($"obj={objective_fun_value}");
 
-                Console.ReadKey();
+                objective_fun_value += divider * free_variables_[leading_row];
             }
-            return objective_fun_;
+        }
+        public string GetObjectiveFun()
+        {
+            string text_func = "";
+            for (int i = 0; i < free_variables_.Count; ++i)
+                text_func += $"x{basis_indexes_[i] + 1}={free_variables_[i]} ";
+            text_func += $"\nL(x)={objective_fun_value}";
+            return text_func;
         }
 
         /*
         TODO:
         
-        протестить мин/макс
         дописать поиск базиса
         возможно сделать не канон (из файла)
         */
