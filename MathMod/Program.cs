@@ -1,4 +1,5 @@
 ﻿using MathMod;
+using System.Globalization;
 
 
 //Console.WriteLine("-----Задача№1-----------------------------------------------------------------");
@@ -95,35 +96,120 @@
 
 internal class Program
 {
+    public static List<LinearProblem> ConverToLinearProblemList(List<string> lines)
+    {
+        int step = 1;//1-L(x), 2-type, 3-restrictions, comparison, free
+        List<LinearProblem> linear_problems = new List<LinearProblem>();
+
+        List<List<double>> a = new List<List<double>> { };
+        List<double> b = new List<double> {};
+        List<string> comparison = new List<string> { };
+        List<double> c = new List<double> { };
+        LinearProblem.problemType type = LinearProblem.problemType.max;
+
+
+        for (int i=0; i<lines.Count; ++i)
+        {
+            if (lines[i].Trim() == string.Empty)
+            {
+                linear_problems.Add(new LinearProblem (a.Select(x => x.ToList()).ToList(), comparison.Select(x=>x).ToList(), b.Select(x=>x).ToList(), c.Select(x=>x).ToList(), type));
+                step = 1;
+            }
+            else
+            {
+                if(step == 1)
+                {
+                    c.Clear();
+                    c = new List<double> { };
+                    c = lines[i].Split().Select(x => double.Parse(x, NumberStyles.AllowLeadingSign)).ToList();
+                    //c = lines[i].Split().Select(double.Parse).ToList();
+                    step = 2;
+                }else if(step == 2)
+                {
+                    if (lines[i].Trim().ToLower() == "max") type = LinearProblem.problemType.max;
+                    else if (lines[i].Trim().ToLower() == "min") type = LinearProblem.problemType.min;
+                    step = 3;
+
+                    a.Clear();b.Clear();comparison.Clear();
+                    a = new List<List<double>> { };
+                    b = new List<double> { };
+                    comparison = new List<string> { };
+                }
+                else if(step ==3)
+                {
+                    a.Add(new List<double>());
+                    List<string> temp_a_comparsion_b = lines[i].Split().ToList();
+                    int line_count = temp_a_comparsion_b.Count;
+                    for(int j=0; j<line_count-2; ++j)
+                        a[a.Count-1].Add(Convert.ToDouble(temp_a_comparsion_b[j]));
+                    comparison.Add(temp_a_comparsion_b[line_count-2]);
+                    b.Add(Convert.ToDouble(temp_a_comparsion_b[line_count - 1]));
+                }
+            }
+        }
+        return linear_problems;
+    }
+
     private static void Main(string[] args)
     {
-        List<List<double>> a = new List<List<double>> { };
-        a.Add(new List<double> { 1, 2, 1, 0, 0 });
-        a.Add(new List<double> { 1, 1, 0, 1, 0 });
-        a.Add(new List<double> { 2, 1, 0, 0, 1 });
-        List<double> b = new List<double> { 4, 3, 8 };
-        List<double> c = new List<double> { -3, -4, 0, 0, 0 };
+        //List<List<double>> a = new List<List<double>> { };
+        //a.Add(new List<double> { 1, 2, 1, 0, 0 });
+        //a.Add(new List<double> { 1, 1, 0, 1, 0 });
+        //a.Add(new List<double> { 2, 1, 0, 0, 1 });
+        //List<double> b = new List<double> { 4, 3, 8 };
+        //List<double> c = new List<double> { -3, -4, 0, 0, 0 };
 
-        List<int> basis = new List<int> { 2, 3, 4 };
+        //List<int> basis = new List<int> { 2, 3, 4 };
 
-        //LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max, basis);
-        LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max);
-        lp.SimplexMethod();
-        Console.WriteLine(lp.GetObjectiveFun()+"\n");
+        ////LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max, basis);
+        //LinearProblem lp = new LinearProblem(a, b, c, LinearProblem.problemType.max);
+        //lp.SimplexMethod();
+        //Console.WriteLine(lp.GetObjectiveFun()+"\n");
 
-        List<List<double>> a1 = new List<List<double>> { };
-        a1.Add(new List<double> { 2, -1, 1, 1, 0, 0 });
-        a1.Add(new List<double> { -4, 2, -1, 0, 1, 0 });
-        a1.Add(new List<double> { 3, 0, 1, 0, 0, 1 });
-        List<double> b1 = new List<double> { 1, 2, 5 };
-        List<double> c1 = new List<double> { -1, 1, 3, 0, 0, 0 };
+        //List<List<double>> a1 = new List<List<double>> { };
+        //a1.Add(new List<double> { 2, -1, 1, 1, 0, 0 });
+        //a1.Add(new List<double> { -4, 2, -1, 0, 1, 0 });
+        //a1.Add(new List<double> { 3, 0, 1, 0, 0, 1 });
+        //List<double> b1 = new List<double> { 1, 2, 5 };
+        //List<double> c1 = new List<double> { -1, 1, 3, 0, 0, 0 };
 
-        List<int> basis1 = new List<int> { 3,4,5 };
+        //List<int> basis1 = new List<int> { 3,4,5 };
 
-        //LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min, basis1);        
-        LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min);
-        lp1.SimplexMethod();
-        Console.WriteLine(lp1.GetObjectiveFun());
-        
+        ////LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min, basis1);        
+        //LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min);
+        //lp1.SimplexMethod();
+        //Console.WriteLine(lp1.GetObjectiveFun());
+
+        //List<List<double>> a1 = new List<List<double>> { };
+        //a1.Add(new List<double> { 2, -1, 1 });
+        //a1.Add(new List<double> { 4, -2, 1 });
+        //a1.Add(new List<double> { 3, 0, 1 });
+        //List<double> b1 = new List<double> { 1, -2, 5 };
+        //List<string> comparison_signs = new List<string> { "<=", ">=", "<=" };
+        //List<double> c1 = new List<double> { 1, -1, -3 };//!!Invert signs!!!
+
+        ////LinearProblem lp1 = new LinearProblem(a1, b1, c1, LinearProblem.problemType.min, basis1);        
+        //LinearProblem lp1 = new LinearProblem(a1, comparison_signs, b1, c1, LinearProblem.problemType.min);
+        //lp1.SimplexMethod();
+        //Console.WriteLine(lp1.GetObjectiveFun());
+
+        const string input = "symplex_data.txt";
+        List<string> lines = File.ReadAllLines(input).ToList();
+        List<LinearProblem> linear_problems = new List<LinearProblem>();
+        linear_problems = ConverToLinearProblemList(lines);
+
+        for (int i = 0; i < linear_problems.Count; ++i)
+        {
+            linear_problems[i].SimplexMethod();
+            Console.WriteLine($"{i}:\n{linear_problems[i].GetObjectiveFun()}");
+        }
+
+        //создать лист задач
+        //если ' ' - новая задача
+        //иначе первая строка - переменные функции
+        //вторая - мин/макс
+        //третья - фигня
+
+        //записать в отдельный файл (и в консоль) ответы
     }
 }

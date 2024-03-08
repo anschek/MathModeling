@@ -10,19 +10,51 @@ namespace MathMod
     //универсальные методы решения задач линейной математики
     internal class LinearProblem
     {
-        public enum problemType
-        {
-            min, max
-        }
+        public enum problemType {min, max}
 
         List<List<double>> restrictions_;
         List<double> free_variables_;
         List<double> objective_fun_;
+        readonly List<double> values_in_result_;
         double objective_fun_value;
         problemType type_;
         List<int> basis_indexes_;
+        List<string> comparison_signs_;
 
-        void PickOutBasis()
+        void ReduceToCanonicalForm()
+        {
+            int balance_variable_count = restrictions_.Count;
+
+            for(int i = 0; i < balance_variable_count; i++)
+            {
+                if (comparison_signs_[i] == ">=" || comparison_signs_[i] == "<=")
+                {
+                    for (int j = 0; j < balance_variable_count; j++)
+                        restrictions_[i].Add(0);
+                    if (comparison_signs_[i] == "<=" || comparison_signs_[i] == ">=")
+                    {
+                        int basis_ind = objective_fun_.Count + i;
+                        restrictions_[i][basis_ind] = 1;
+                        //Console.WriteLine($"basis one: [{i}][{basis_ind}]");
+                        if (comparison_signs_[i] == ">=")
+                        {
+                            restrictions_[i][basis_ind] = -1;
+                            restrictions_[i] = restrictions_[i].Select(x => -x).ToList();
+                            //foreach (int el in restrictions_[i])
+                            //    Console.WriteLine($"{el} ");
+                            free_variables_[i] *= -1;
+                        }
+                    }
+                    
+                }
+                else if (comparison_signs_[i] == "=") continue;
+                else throw new FormatException($"Ожидаются символы: >=, <=, =. Фактический: {comparison_signs_[i]}");
+            }
+            for (int j = 0; j < balance_variable_count; j++)
+                objective_fun_.Add(0);
+        }
+
+        List<int> PickOutBasis()
         {
             List<int> basis = new List<int>();
             for (int j = 0; j < restrictions_[0].Count; ++j)
@@ -41,24 +73,20 @@ namespace MathMod
                 if (onlyCanonicalSigns && ones == 1) basis.Add(j);
             }
             if (basis.Count != restrictions_.Count) throw new ArgumentException($"Ожидаемая размерность базиса {restrictions_.Count}. Фактическая: {basis.Count}");
-            basis_indexes_ = basis;
-        }
-
-        //public LinearProblem(List<List<double>> a, List<double> b, List<double> c, problemType type, List<int> basis)
-        //{
-        //    restrictions_ = a;
-        //    free_variables_ = b;
-        //    objective_fun_ = c;
-        //    type_ = type;
-        //    PickOutBasis();
-        //}        
-        public LinearProblem(List<List<double>> a, List<double> b, List<double> c, problemType type)
+            return basis;
+        }   
+        public LinearProblem(List<List<double>> a, List<string> comparison_signs, List<double> b, List<double> c, problemType type)
         {
             restrictions_ = a;
+            comparison_signs_= comparison_signs;
             free_variables_ = b;
             objective_fun_ = c;
+            values_in_result_ = new List<double> { };
+            for (int i = 0; i < objective_fun_.Count; ++i) if (objective_fun_[i] != 0) values_in_result_.Add(i);
             type_ = type;
-            PickOutBasis();
+            ReduceToCanonicalForm();
+            basis_indexes_ = PickOutBasis();
+            objective_fun_ = objective_fun_.Select(x => -x).ToList();
         }
         //возвращает -1, если в базис вводить нечего, иначе индекс вводимой переменной
         int EnteringIntoBasis()
@@ -118,17 +146,10 @@ namespace MathMod
         public string GetObjectiveFun()
         {
             string text_func = "";
-            for (int i = 0; i < free_variables_.Count; ++i)
-                text_func += $"x{basis_indexes_[i] + 1}={free_variables_[i]} ";
-            text_func += $"\nL(x)={objective_fun_value}";
+            for (int i = 0; i < basis_indexes_.Count; ++i)
+                if (-1 != values_in_result_.FindIndex(x => x == basis_indexes_[i])) 
+                    text_func += $"x{basis_indexes_[i] + 1}={Math.Round(free_variables_[i], 3)} "; 
+            text_func += $"\nL(x)={Math.Round(objective_fun_value, 3)}";
             return text_func;
         }
-
-        /*
-        TODO:
-        
-        дописать поиск базиса
-        возможно сделать не канон (из файла)
-        */
-    }
 }
