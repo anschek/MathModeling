@@ -561,6 +561,7 @@
                 }
                 if (is_first_itaration) is_first_itaration = false;
             } while (continue_);
+            optimal_ = cur_reference_plan;
             return is_optimal;
         }
     }

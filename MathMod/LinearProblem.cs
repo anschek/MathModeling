@@ -10,7 +10,7 @@ namespace MathMod
     //универсальные методы решения задач линейной математики
     internal class LinearProblem
     {
-        public enum problemType {min, max}
+        public enum problemType { min, max }
 
         List<List<double>> restrictions_;
         List<double> free_variables_;
@@ -25,7 +25,7 @@ namespace MathMod
         {
             int balance_variable_count = restrictions_.Count;
 
-            for(int i = 0; i < balance_variable_count; i++)
+            for (int i = 0; i < balance_variable_count; i++)
             {
                 if (comparison_signs_[i] == ">=" || comparison_signs_[i] == "<=")
                 {
@@ -35,17 +35,14 @@ namespace MathMod
                     {
                         int basis_ind = objective_fun_.Count + i;
                         restrictions_[i][basis_ind] = 1;
-                        //Console.WriteLine($"basis one: [{i}][{basis_ind}]");
                         if (comparison_signs_[i] == ">=")
                         {
                             restrictions_[i][basis_ind] = -1;
                             restrictions_[i] = restrictions_[i].Select(x => -x).ToList();
-                            //foreach (int el in restrictions_[i])
-                            //    Console.WriteLine($"{el} ");
                             free_variables_[i] *= -1;
                         }
                     }
-                    
+
                 }
                 else if (comparison_signs_[i] == "=") continue;
                 else throw new FormatException($"Ожидаются символы: >=, <=, =. Фактический: {comparison_signs_[i]}");
@@ -63,7 +60,7 @@ namespace MathMod
                 int ones = 0;
                 for (int i = 0; i < restrictions_.Count; ++i)
                 {
-                    if (restrictions_[i][j] != 0 && restrictions_[i][j] != 1) 
+                    if (restrictions_[i][j] != 0 && restrictions_[i][j] != 1)
                     {
                         onlyCanonicalSigns = false;
                         break;
@@ -74,19 +71,18 @@ namespace MathMod
             }
             if (basis.Count != restrictions_.Count) throw new ArgumentException($"Ожидаемая размерность базиса {restrictions_.Count}. Фактическая: {basis.Count}");
             return basis;
-        }   
+        }
         public LinearProblem(List<List<double>> a, List<string> comparison_signs, List<double> b, List<double> c, problemType type)
         {
             restrictions_ = a;
-            comparison_signs_= comparison_signs;
+            comparison_signs_ = comparison_signs;
             free_variables_ = b;
-            objective_fun_ = c;
+            objective_fun_ = c.Select(x => -x).ToList();
             values_in_result_ = new List<double> { };
             for (int i = 0; i < objective_fun_.Count; ++i) if (objective_fun_[i] != 0) values_in_result_.Add(i);
             type_ = type;
             ReduceToCanonicalForm();
             basis_indexes_ = PickOutBasis();
-            objective_fun_ = objective_fun_.Select(x => -x).ToList();
         }
         //возвращает -1, если в базис вводить нечего, иначе индекс вводимой переменной
         int EnteringIntoBasis()
@@ -147,9 +143,10 @@ namespace MathMod
         {
             string text_func = "";
             for (int i = 0; i < basis_indexes_.Count; ++i)
-                if (-1 != values_in_result_.FindIndex(x => x == basis_indexes_[i])) 
-                    text_func += $"x{basis_indexes_[i] + 1}={Math.Round(free_variables_[i], 3)} "; 
+                if (-1 != values_in_result_.FindIndex(x => x == basis_indexes_[i]))
+                    text_func += $"x{basis_indexes_[i] + 1}={Math.Round(free_variables_[i], 3)} ";
             text_func += $"\nL(x)={Math.Round(objective_fun_value, 3)}";
             return text_func;
         }
+    }
 }
