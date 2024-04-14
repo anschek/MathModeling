@@ -1,4 +1,5 @@
 ﻿using MathMod;
+using System;
 using System.Globalization;
 
 
@@ -150,6 +151,16 @@ internal class Program
         return linear_problems;
     }
 
+    static void PrintMatrix<T>(List<List<T>> matrix)
+    {
+        for (int i = 0; i < matrix.Count; ++i)
+        {
+            for (int j = 0; j < matrix[0].Count; ++j)
+                Console.Write(matrix[i][j] + "  ");
+            Console.WriteLine();
+        }
+    }
+
     private static void Main(string[] args)
     {
         //List<List<double>> a = new List<List<double>> { };
@@ -193,23 +204,28 @@ internal class Program
         //lp1.SimplexMethod();
         //Console.WriteLine(lp1.GetObjectiveFun());
 
-        const string input = "symplex_data.txt";
-        List<string> lines = File.ReadAllLines(input).ToList();
-        List<LinearProblem> linear_problems = new List<LinearProblem>();
-        linear_problems = ConverToLinearProblemList(lines);
+        //const string input = "symplex_data.txt";
+        //List<string> lines = File.ReadAllLines(input).ToList();
+        //List<LinearProblem> linear_problems = new List<LinearProblem>();
+        //linear_problems = ConverToLinearProblemList(lines);
 
-        for (int i = 0; i < linear_problems.Count; ++i)
-        {
-            linear_problems[i].SimplexMethod();
-            Console.WriteLine($"{i}:\n{linear_problems[i].GetObjectiveFun()}");
-        }
+        //for (int i = 0; i < linear_problems.Count; ++i)
+        //{
+        //    linear_problems[i].SimplexMethod();
+        //    Console.WriteLine($"{i}:\n{linear_problems[i].GetObjectiveFun()}");
+        //}
 
-        //создать лист задач
-        //если ' ' - новая задача
-        //иначе первая строка - переменные функции
-        //вторая - мин/макс
-        //третья - фигня
+        const double inf = double.PositiveInfinity;
 
-        //записать в отдельный файл (и в консоль) ответы
+        List<List<double>> m0 = new List<List<double>> {
+        new List<double>{inf, 20,  18,  12,  8},
+        new List<double>{5,   inf, 14,  7,   11},
+        new List<double>{12,  18,  inf, 6,   11},
+        new List<double>{11,  17,  11,  inf, 12},
+        new List<double>{5,   5,   5,   5,   inf}
+        };
+
+        TravelingSalesmanProblem p0 = new TravelingSalesmanProblem(m0);
+
     }
 }
