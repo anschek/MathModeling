@@ -195,39 +195,52 @@ internal class Program
 
         //АЛГОРИТ ЛИТТЛА
 
-        List<List<double>> m0 = new List<List<double>> {
-        new List<double>{inf, 20,  18,  12,  8},
-        new List<double>{5,   inf, 14,  7,   11},
-        new List<double>{12,  18,  inf, 6,   11},
-        new List<double>{11,  17,  11,  inf, 12},
-        new List<double>{5,   5,   5,   5,   inf}
+        //List<List<double>> m0 = new List<List<double>> {
+        //new List<double>{inf, 20,  18,  12,  8},
+        //new List<double>{5,   inf, 14,  7,   11},
+        //new List<double>{12,  18,  inf, 6,   11},
+        //new List<double>{11,  17,  11,  inf, 12},
+        //new List<double>{5,   5,   5,   5,   inf}
+        //};
+
+        //TravelingSalesmanProblem p0 = new TravelingSalesmanProblem(m0);
+        //p0.Solve();
+        //List<(int, int)> edges0 = p0.GetPath();
+        //double res0 = p0.GetResult();
+
+        //Console.WriteLine($"Ответ: {res0}");
+        //foreach ((int a, int b) in edges0)
+        //    Console.Write($"({a}, {b})  \n");
+
+
+        //List<List<double>> m1 = new List<List<double>> {
+        //new List<double>{inf, 4,5,7,5},
+        //new List<double>{8,   inf, 5,6,6},
+        //new List<double>{3,5,  inf, 9,6},
+        //new List<double>{3,5,6,  inf, 2},
+        //new List<double>{6,2,3,8,   inf}
+        //};
+
+        //TravelingSalesmanProblem p1 = new TravelingSalesmanProblem(m1);
+        //p1.Solve();
+        //List<(int, int)> edges1 = p1.GetPath();
+        //double res1 = p1.GetResult();
+
+        //Console.WriteLine($"Ответ: {res1}");
+        //foreach ((int a, int b) in edges1)
+        //    Console.Write($"({a}, {b})\n");
+
+
+        List<List<double>> m2 = new List<List<double>> {
+        new List<double>{inf,7,9,inf,inf,14},
+        new List<double>{7,inf,10,15,inf,inf},
+        new List<double>{9,10,inf,11,inf,2},
+        new List<double>{inf,15,11,inf,6,inf},
+        new List<double>{inf,inf,inf,6,inf,9},
+        new List<double>{14,inf,2,inf,9,inf}
         };
 
-        TravelingSalesmanProblem p0 = new TravelingSalesmanProblem(m0);
-        p0.Solve();
-        List<(int, int)> edges0 = p0.GetPath();
-        double res0 = p0.GetResult();
-
-        Console.WriteLine($"Ответ: {res0}");
-        foreach ((int a, int b) in edges0)
-            Console.Write($"({a}, {b})  ");
-
-
-        List<List<double>> m1 = new List<List<double>> {
-        new List<double>{inf, 4,5,7,5},
-        new List<double>{8,   inf, 5,6,6},
-        new List<double>{3,5,  inf, 9,6},
-        new List<double>{3,5,6,  inf, 2},
-        new List<double>{6,2,3,8,   inf}
-        };
-
-        TravelingSalesmanProblem p1 = new TravelingSalesmanProblem(m1);
-        p1.Solve();
-        List<(int, int)> edges1 = p1.GetPath();
-        double res1 = p1.GetResult();
-
-        Console.WriteLine($"Ответ: {res1}");
-        foreach ((int a, int b) in edges1)
-            Console.Write($"({a}, {b})  ");
+        DijkstrasAlgorithm d0 = new DijkstrasAlgorithm(m2);
+        List<double> res = d0.Solve(0);
     }
 }

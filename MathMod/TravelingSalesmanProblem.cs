@@ -79,7 +79,7 @@
                 curLowerLimit = graphOfSolutions_.Where(x => !double.IsNaN(x.lowerLevel)).Min(x => x.lowerLevel);
                 curLeadingBranch_ = graphOfSolutions_.FindIndex(x => x.lowerLevel == curLowerLimit);
                 curMatrix = Program.Init2DList(graphOfSolutions_[curLeadingBranch_].matrix);
-                Console.WriteLine("Матрица, выбранная для следующего шага: ");
+                Console.WriteLine($"Матрица, выбранная для следующего шага c нижней границей={curLowerLimit}: ");
                 Program.PrintMatrix(curMatrix);
             }
             (int lastFrom, int LastTo) = (graphOfSolutions_[curLeadingBranch_].rowIndexes.Last(), graphOfSolutions_[curLeadingBranch_].colIndexes.Last());
