@@ -1,5 +1,4 @@
 ﻿using MathMod;
-using System;
 using System.Globalization;
 
 internal class Program
@@ -194,7 +193,7 @@ internal class Program
         //    Console.WriteLine($"{i}:\n{linear_problems[i].GetObjectiveFun()}");
         //}
 
-
+        //АЛГОРИТ ЛИТТЛА
 
         List<List<double>> m0 = new List<List<double>> {
         new List<double>{inf, 20,  18,  12,  8},
@@ -206,11 +205,11 @@ internal class Program
 
         TravelingSalesmanProblem p0 = new TravelingSalesmanProblem(m0);
         p0.Solve();
-        List<(int, int)> edges = p0.GetPath();
-        double res = p0.GetResult();
+        List<(int, int)> edges0 = p0.GetPath();
+        double res0 = p0.GetResult();
 
-        Console.WriteLine($"Ответ: {res}");
-        foreach ((int a, int b) in edges)
+        Console.WriteLine($"Ответ: {res0}");
+        foreach ((int a, int b) in edges0)
             Console.Write($"({a}, {b})  ");
 
 

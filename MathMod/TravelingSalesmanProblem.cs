@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MathMod
+﻿namespace MathMod
 {
     internal class TravelingSalesmanProblem
     {
-        public List<List<double>> mainMatrix_;
+        List<List<double>> mainMatrix_;
         List<PathInfo> graphOfSolutions_;
-
         class PathInfo
         {
             public List<(int, int)> edges;
@@ -24,14 +17,6 @@ namespace MathMod
                 rowIndexes = new List<int>();
                 colIndexes = new List<int>();
             }
-            //public PathInfo(List<(int, int)> edges, double lowerLevel, List<List<double>> matrix)
-            //{
-            //    this.edges = edges;
-            //    this.lowerLevel = lowerLevel;
-            //    this.matrix = matrix;
-            //    rowIndexes = Enumerable.Range(0, matrix.Count).ToList();
-            //    colIndexes = Enumerable.Range(0, matrix[0].Count).ToList();
-            //}
             public PathInfo(List<(int, int)> edges, double lowerLevel, List<List<double>> matrix, List<int> rowBase, List<int> colBase)
             {
                 this.edges = edges;
@@ -66,61 +51,37 @@ namespace MathMod
             curLeadingBranch_ = 0;
             double curLowerLimit = 0;
             bool isFirstIteration = true;
-
             while(curMatrix.Count > 1 )
             {
                 if (isFirstIteration)
-                {
+                {//H0
                     double lowerLimit = RowAndColumnsReduction(curMatrix);
                     curLowerLimit = lowerLimit;
-                    graphOfSolutions_.Add(new PathInfo(lowerLimit, mainMatrix_));//H0
+                    graphOfSolutions_.Add(new PathInfo(lowerLimit, mainMatrix_));
                     isFirstIteration = false;
                 }
-                else
-                {
-                    curLowerLimit += RowAndColumnsReduction(curMatrix);
-                }
+                else curLowerLimit += RowAndColumnsReduction(curMatrix);
 
-                //сначала скопировать, потом на ней посчитать все
-                
-                graphOfSolutions_.Add(new PathInfo(Program.Init1DList(graphOfSolutions_[curLeadingBranch_].edges),
-                    graphOfSolutions_[curLeadingBranch_].lowerLevel, Program.Init2DList(graphOfSolutions_[curLeadingBranch_].matrix),
-                    Program.Init1DList(graphOfSolutions_[curLeadingBranch_].rowIndexes), Program.Init1DList(graphOfSolutions_[curLeadingBranch_].colIndexes)));
-                
-                ////!!
-                ((int from, int to), double maxValue) = ZeroCellsAssessment(curMatrix, graphOfSolutions_.Count-1);//+1
-                ////!!
-                List<List<double>> reducedMatrix = MatrixReduction(curMatrix, from, to, graphOfSolutions_.Count - 1);//+1
+                CreateNewBranchOnBase(curLeadingBranch_);
+                ((int from, int to), double maxValue) = ZeroCellsAssessment(curMatrix, graphOfSolutions_.Count-1);
+                List<List<double>> reducedMatrix = MatrixReduction(curMatrix, from, to, graphOfSolutions_.Count - 1);
+                //H
                 graphOfSolutions_.Last().edges.Add((from,to));
-                ////!!
-                //CreateNewBranchOnBase(curLeadingBranch_, (from, to), curLowerLimit, reducedMatrix);//last branch
-                graphOfSolutions_.Last().lowerLevel += RowAndColumnsReduction(reducedMatrix);//H
+                graphOfSolutions_.Last().lowerLevel += RowAndColumnsReduction(reducedMatrix);
                 graphOfSolutions_.Last().matrix = reducedMatrix;
-
-                graphOfSolutions_[curLeadingBranch_].matrix = Program.Init2DList(curMatrix);//H*
+                //H*
+                graphOfSolutions_[curLeadingBranch_].matrix = Program.Init2DList(curMatrix);
                 graphOfSolutions_[curLeadingBranch_].lowerLevel += maxValue;
                 graphOfSolutions_[curLeadingBranch_].matrix[graphOfSolutions_[curLeadingBranch_].rowIndexes.FindIndex(x => x == from)]
-                    [graphOfSolutions_[curLeadingBranch_].colIndexes.FindIndex(x => x == to)] = Program.inf;
-
-                Console.WriteLine($"{from} -> {to}, yes: {graphOfSolutions_.Last().lowerLevel}, no: {graphOfSolutions_[curLeadingBranch_].lowerLevel} ");
-
-
-
-                var t = graphOfSolutions_.Where(x => !double.IsNaN(x.lowerLevel));
-                curLowerLimit = t.Min(x => x.lowerLevel);
+                    [graphOfSolutions_[curLeadingBranch_].colIndexes.FindIndex(x => x == to)] = Program.inf;//a[from][to]=m
+                Console.WriteLine($"\n{from} -> {to}, с ребром: {graphOfSolutions_.Last().lowerLevel}, без ребра: {graphOfSolutions_[curLeadingBranch_].lowerLevel} ");
+                //for next iteration
+                curLowerLimit = graphOfSolutions_.Where(x => !double.IsNaN(x.lowerLevel)).Min(x => x.lowerLevel);
                 curLeadingBranch_ = graphOfSolutions_.FindIndex(x => x.lowerLevel == curLowerLimit);
                 curMatrix = Program.Init2DList(graphOfSolutions_[curLeadingBranch_].matrix);
-
-
-
-                Console.WriteLine("Для след шага выбрана: ");
+                Console.WriteLine("Матрица, выбранная для следующего шага: ");
                 Program.PrintMatrix(curMatrix);
-                Console.WriteLine("Она включила в себя ребра: ");
-                foreach ((int a, int b) in graphOfSolutions_[curLeadingBranch_].edges)
-                    Console.Write($"({a}, {b})  ");
-                Console.WriteLine($"\nГраница {graphOfSolutions_[curLeadingBranch_].lowerLevel}\n");
             }
-            //добавить последние row col в ответ, удалить их, вернуть список ребер
             (int lastFrom, int LastTo) = (graphOfSolutions_[curLeadingBranch_].rowIndexes.Last(), graphOfSolutions_[curLeadingBranch_].colIndexes.Last());
             graphOfSolutions_[curLeadingBranch_].edges.Add((lastFrom,LastTo));
             result_ = graphOfSolutions_[curLeadingBranch_].lowerLevel;
@@ -159,53 +120,39 @@ namespace MathMod
                         curMatrix[i][j] = 0;
                     }
                 }
-            var maxValue = zeroCellsAssessment.First(x => x.Value == zeroCellsAssessment.Max(x => x.Value));
+            KeyValuePair<(int, int), double> maxValue = zeroCellsAssessment.First(x => x.Value == zeroCellsAssessment.Max(x => x.Value));
             return ((graphOfSolutions_[pathInd].rowIndexes[maxValue.Key.Item1], graphOfSolutions_[pathInd].colIndexes[maxValue.Key.Item2]), maxValue.Value);
         }
 
         List<List<double>> MatrixReduction(List<List<double>> originalMatrix, int from, int to, int pathInd) 
         {
-            //from/to - realIndexes
             List<List<double>> reducedMatrix = Program.Init2DList(originalMatrix);
             PathInfo curPath = graphOfSolutions_[pathInd];
-
             (int deletedRow, int deletedCol) = (curPath.rowIndexes.FindIndex(rowInd => rowInd == from),
                curPath.colIndexes.FindIndex(colInd => colInd == to));
-
             int findRowTo = curPath.rowIndexes.FindIndex(rowInd => rowInd == to);
             int findColFrom = curPath.colIndexes.FindIndex(colInd => colInd == from);
             if(findRowTo >=0 && findColFrom >=0)  reducedMatrix[findRowTo][findColFrom] = Program.inf;
 
             reducedMatrix.RemoveAt(curPath.rowIndexes.FindIndex(x => x==from));
             foreach (List<double> row in reducedMatrix) row.RemoveAt(curPath.colIndexes.FindIndex(x => x == to));
-
             graphOfSolutions_[pathInd].rowIndexes.Remove(from);
             graphOfSolutions_[pathInd].colIndexes.Remove(to);
-
             return reducedMatrix;
         }
 
-        void CreateNewBranchOnBase(int baseIndex, (int, int) newEdges, double newLowerLimit, List<List<double>> curMatrix)
+        void CreateNewBranchOnBase(int baseIndex)
         {
-            List<(int, int)> edgesToNewBranch = Program.Init1DList(graphOfSolutions_[baseIndex].edges);
-            edgesToNewBranch.Add(newEdges);
-            graphOfSolutions_.Add(new PathInfo(edgesToNewBranch, newLowerLimit, Program.Init2DList(curMatrix),
-                graphOfSolutions_[baseIndex].rowIndexes, graphOfSolutions_[baseIndex].colIndexes));
+            graphOfSolutions_.Add(new PathInfo(
+                Program.Init1DList(graphOfSolutions_[baseIndex].edges),
+                graphOfSolutions_[baseIndex].lowerLevel, 
+                Program.Init2DList(graphOfSolutions_[baseIndex].matrix),
+                Program.Init1DList(graphOfSolutions_[baseIndex].rowIndexes), 
+                Program.Init1DList(graphOfSolutions_[baseIndex].colIndexes)));
         }
 
-        //List<List<double>> RestoreMatrix(int index)
-        //{
-        //    List<List<double>> restoredMatrix = Program.Init2DList(mainMatrix_);
-        //    foreach ((int from, int to) in graphOfSolutions_[index].substractedEdges)
-        //        restoredMatrix[from][to] = Program.inf;
-        //    foreach ((int from, int to) in graphOfSolutions_[index].edges)
-        //    {
-        //        restoredMatrix.RemoveAt(from);
-        //        for (int rowInd = 0; rowInd < restoredMatrix.Count; ++rowInd) restoredMatrix[rowInd].RemoveAt(to);
-        //    }
-        //    return restoredMatrix;
-        //}
         public double GetResult() => result_;
+
         public List<(int,int)> GetPath() => graphOfSolutions_[curLeadingBranch_].edges;
     }
 }
