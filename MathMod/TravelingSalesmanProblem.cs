@@ -112,14 +112,12 @@
             Dictionary<(int,int),double> zeroCellsAssessment = new Dictionary<(int,int),double>();
             for (int i = 0;i < curMatrix.Count; ++i)
                 for(int j =0; j < curMatrix[i].Count; ++j)
-                {
                     if (curMatrix[i][j] == 0)
                     {
                         curMatrix[i][j] = Program.inf;
                         zeroCellsAssessment.Add((i,j), curMatrix[i].Min() + Enumerable.Range(0, curMatrix.Count).Select(rowInd => curMatrix[rowInd][j]).Min());
                         curMatrix[i][j] = 0;
                     }
-                }
             KeyValuePair<(int, int), double> maxValue = zeroCellsAssessment.First(x => x.Value == zeroCellsAssessment.Max(x => x.Value));
             return ((graphOfSolutions_[pathInd].rowIndexes[maxValue.Key.Item1], graphOfSolutions_[pathInd].colIndexes[maxValue.Key.Item2]), maxValue.Value);
         }

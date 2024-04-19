@@ -241,6 +241,6 @@ internal class Program
         };
 
         DijkstrasAlgorithm d0 = new DijkstrasAlgorithm(m2);
-        List<double> res = d0.Solve(0);
+        Dictionary<int, double> res = d0.Solve(0);
     }
 }
