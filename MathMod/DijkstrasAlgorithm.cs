@@ -30,7 +30,7 @@ namespace MathMod
                 
                 for(int j=0; j < mainMatrix_[0].Count; ++j) 
                 {//если ребро существует и оно не родительское
-                    if (mainMatrix[nearestVertex][j] < Program.inf && paths[nearestVertex].All(x=> x!=j))
+                    if (mainMatrix[nearestVertex][j] < Program.inf && notVisited[j])
                     {//если вершину надо продлить, продливаем, добавляем путь
                         if (results[j] > results[nearestVertex] + mainMatrix[nearestVertex][j])
                         {
