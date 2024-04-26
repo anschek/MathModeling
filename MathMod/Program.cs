@@ -230,6 +230,7 @@ internal class Program
         //foreach ((int a, int b) in edges1)
         //    Console.Write($"({a}, {b})\n");
 
+        //АЛГОРИТМ ДЕЙКСТРЫ
 
         List<List<double>> m2 = new List<List<double>> {
         new List<double>{inf,7,9,inf,inf,14},
@@ -240,7 +241,45 @@ internal class Program
         new List<double>{14,inf,2,inf,9,inf}
         };
 
+        int from = 0;
         DijkstrasAlgorithm d0 = new DijkstrasAlgorithm(m2);
-        Dictionary<int, double> res = d0.Solve(0);
+        (Dictionary<int, double> res, Dictionary<int, List<int>> paths) = d0.Solve(from);
+        foreach ((int vertex, double value) in res)
+        {
+            Console.Write($"{from + 1}->{vertex + 1}: {value}.\t");
+            foreach (int passesVertex in paths[vertex])
+            {
+                Console.Write($"{passesVertex + 1} ");
+            }
+            Console.WriteLine();
+        }
+        Console.WriteLine();
+
+        List<List<double>> m3 = new List<List<double>>
+        {
+            new List<double>{inf,20,25,30,inf,inf,inf,inf,inf,inf},//a
+            new List<double>{20,inf,inf,5,inf,10,inf,inf,inf,inf},
+            new List<double>{25,inf,inf,inf,inf,10,15,inf,inf,inf},
+            new List<double>{30,5,inf,inf, 25,inf,inf,inf,inf,inf},//г
+            new List<double>{inf,inf,inf,25, inf, 15,inf,5,10,20},
+            new List<double>{inf,10,10,inf, 15, inf,10,inf,inf,inf },
+            new List<double>{inf,inf,15,inf, inf, 10,inf,15,inf,inf },//ж
+            new List<double>{inf,inf,inf,inf, 5, inf,15,inf,inf,10 },
+            new List<double>{inf,inf,inf,inf, 10, inf,inf,inf,inf,10 },
+            new List<double>{inf,inf,inf,inf, 20, inf,inf,10,10,inf }//к
+        };
+
+        from = 0;
+        DijkstrasAlgorithm d1 = new DijkstrasAlgorithm(m3);
+        (res,paths) = d1.Solve(from);
+        foreach ((int vertex, double value) in res)
+        {
+            Console.Write($"{Convert.ToChar('А'+from)}->{Convert.ToChar('А' + vertex)}: {value}.\t");
+            foreach (int passesVertex in paths[vertex])
+            {
+                Console.Write($"{Convert.ToChar('А' + passesVertex)} ");
+            }
+            Console.WriteLine();
+        }
     }
 }
